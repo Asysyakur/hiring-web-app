@@ -166,6 +166,7 @@ const JobListPage: React.FC = () => {
           )}
         </section>
 
+        {/* Sidebar Section */}
         <section className="md:col-span-2 rounded-xl shadow p-6 relative overflow-hidden">
           <div className="absolute inset-0">
             <Image

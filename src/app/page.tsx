@@ -8,12 +8,12 @@ import { useState } from "react";
 export default function HomePage() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const [selectedRole, setSelectedRoleState] = useState<"admin" | "jobseeker" | null>(null);
+  const [selectedRole, setSelectedRoleState] = useState<"admin" | "candidate" | null>(null);
 
   const handleContinue = () => {
     if (!selectedRole) return;
     dispatch(setRole(selectedRole));
-    router.push(`/${selectedRole}`);
+    router.push(`/${selectedRole}/joblist`);
   };
 
   return (
@@ -35,14 +35,14 @@ export default function HomePage() {
           </button>
 
           <button
-            onClick={() => setSelectedRoleState("jobseeker")}
+            onClick={() => setSelectedRoleState("candidate")}
             className={`border-2 rounded-xl py-3 text-lg font-medium transition-all duration-300 ${
-              selectedRole === "jobseeker"
+              selectedRole === "candidate"
                 ? "border-secondary bg-secondary/10 text-secondary"
                 : "border-border hover:border-secondary hover:bg-secondary/5"
             }`}
           >
-            💼 Job Seeker
+            💼 Candidate
           </button>
         </div>
 
