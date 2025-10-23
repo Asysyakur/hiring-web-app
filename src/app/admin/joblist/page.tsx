@@ -8,11 +8,15 @@ import CreateJobBg from "@/assets/CreateJobBG.jpg";
 import EmptyState from "@/assets/Empty State.svg";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
+import CardSkeleton from "@/components/CardSkeleton";
+import { useRouter } from "next/navigation";
 
 const JobListPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [jobs, setJobs] = useState<Jobs[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const router = useRouter();
 
   useEffect(() => {
     fetchJobs();
@@ -29,6 +33,10 @@ const JobListPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleChangePage = (jobId: string) => {
+    router.push(`/admin/joblist/managejob/${jobId}`);
   };
 
   return (
@@ -66,8 +74,10 @@ const JobListPage: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className="mt-8 w-full min-h-[220px] md:min-h-[360px] flex items-center justify-center">
-              <span className="text-sm text-secondaryText">Loading...</span>
+            <div className="mt-8 space-y-4 flex flex-col w-full">
+              {[1, 2, 3].map((key) => (
+                <CardSkeleton key={key} />
+              ))}
             </div>
           ) : jobs.length === 0 ? (
             // Empty State Section
@@ -140,9 +150,12 @@ const JobListPage: React.FC = () => {
                       </div>
                       <div>
                         <Button
-                          label="View Candidates"
+                          label="Manage Job"
                           variant="primary"
                           className="text-sm"
+                          onClick={() => {
+                            handleChangePage(job.id);
+                          }}
                         />
                       </div>
                     </div>
@@ -153,7 +166,6 @@ const JobListPage: React.FC = () => {
           )}
         </section>
 
-        {/* Sidebar Section */}
         <section className="md:col-span-2 rounded-xl shadow p-6 relative overflow-hidden">
           <div className="absolute inset-0">
             <Image

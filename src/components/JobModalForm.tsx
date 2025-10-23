@@ -216,23 +216,27 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose }) => {
 
             <div>
               <label
-                htmlFor="jobType"
-                className="block text-sm font-medium mb-1"
+              htmlFor="jobType"
+              className="block text-sm font-medium mb-1"
               >
-                Job Type <span className="text-danger">*</span>
+              Job Type <span className="text-danger">*</span>
               </label>
+
+              <div className="relative">
               <select
                 id="jobType"
                 name="jobType"
                 defaultValue=""
-                className={`w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.jobType ? "border-danger" : ""
-                }`}
+                className={`w-full appearance-none rounded-lg px-4 py-2 pr-10 border transition-colors duration-150
+                bg-white text-gray-700
+                focus:outline-none focus:ring-2 focus:ring-primary
+                hover:border-gray-400
+                ${errors.jobType ? "border-danger" : "border-gray-300"}`}
                 aria-invalid={!!errors.jobType}
                 aria-describedby={errors.jobType ? "jobType-error" : undefined}
               >
                 <option value="" disabled>
-                  Select job type
+                Select job type
                 </option>
                 <option value="full_time">Full Time</option>
                 <option value="part_time">Part Time</option>
@@ -240,10 +244,29 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose }) => {
                 <option value="internship">Internship</option>
                 <option value="freelance">Freelance</option>
               </select>
+
+              {/* custom chevron */}
+              <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
+                <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+                >
+                <path
+                  fillRule="evenodd"
+                  d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                  clipRule="evenodd"
+                />
+                </svg>
+              </span>
+              </div>
+
               {errors.jobType && (
-                <p id="jobType-error" className="text-danger text-sm mt-1">
-                  {errors.jobType}
-                </p>
+              <p id="jobType-error" className="text-danger text-sm mt-1">
+                {errors.jobType}
+              </p>
               )}
             </div>
 
@@ -259,8 +282,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose }) => {
                 name="jobDescription"
                 rows={5}
                 aria-readonly="true"
-                placeholder="Ex."
-                className={`w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-primary ${
+                placeholder="Ex. We are looking for a skilled Front End Engineer to join our team..."
+                className={`w-full resize-y border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-primary ${
                   errors.jobDescription ? "border-danger" : ""
                 }`}
                 aria-invalid={!!errors.jobDescription}

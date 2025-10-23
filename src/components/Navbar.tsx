@@ -2,12 +2,52 @@
 
 import { useRouter } from "next/navigation";
 
-export default function Navbar({pageName}: {pageName?: string}) {
+type Props = {
+  pageName?: string;
+  pageBefore?: string; // tidak wajib
+  pathBack?: string;
+};
+
+export default function Navbar({ pageName, pageBefore, pathBack }: Props) {
   const router = useRouter();
 
   return (
     <nav className="w-full bg-primaryBg text-primaryText px-6 py-3 flex justify-between items-center border-b">
-      <h1 className="text-xl font-bold tracking-wide">{pageName || "Job List"}</h1>
+      <div className="flex items-center gap-4">
+        {pageBefore && pathBack ? (
+          <>
+            <button
+              onClick={() => router.push(pathBack)}
+              className="text-base md:text-lg font-semibold border-2 px-4 py-1 rounded-lg"
+              aria-label="Back"
+            >
+              {pageBefore}
+            </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="3"
+              stroke="currentColor"
+              className="size-6 -mx-3"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m8.25 4.5 7.5 7.5-7.5 7.5"
+              />
+            </svg>
+          </>
+        ) : null}
+
+        <h1
+          className={`text-base md:text-lg font-semibold px-4 py-1 rounded-lg ${
+            pageBefore ? "border-2 border-gray-300 bg-gray-200" : ""
+          }`}
+        >
+          {pageName}
+        </h1>
+      </div>
 
       <div className="flex items-center gap-6">
         <button
@@ -21,7 +61,7 @@ export default function Navbar({pageName}: {pageName?: string}) {
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className="size-6"
+            className="w-6 h-6"
           >
             <path
               strokeLinecap="round"
