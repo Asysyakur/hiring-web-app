@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "@/styles/globals.css";
 import { Providers } from "@/store/provider"; // Provider Redux custom
+import { ClientProviders } from "@/components/ClientProviders";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,15 +22,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 text-gray-800`}
       >
-        <Providers>{children}</Providers>
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );

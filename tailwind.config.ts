@@ -17,6 +17,7 @@ const config: Config = {
         background: "#F5F5F5",
         danger: "#E11428",
         success: "#43936C",
+        successBorder: "#B8DBCA",
         primaryText: "#1E1F21",
         primaryBg: "#FFFFFF",
         secondaryText: "#404040",

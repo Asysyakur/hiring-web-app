@@ -1,4 +1,7 @@
-import React from "react";
+"use client";
+
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 interface JobFormModalProps {
   isOpen: boolean;
@@ -88,7 +91,8 @@ const RadioOptions: React.FC<{
 };
 
 const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose }) => {
-  const [errors, setErrors] = React.useState<{ [key: string]: string }>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [submitting, setSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
@@ -97,7 +101,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose }) => {
     if (e.target === e.currentTarget) onClose();
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
     const fd = new FormData(form);
@@ -108,14 +112,6 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose }) => {
     const candidatesNeeded = String(fd.get("candidatesNeeded") ?? "").trim();
     const minSalary = String(fd.get("jobSalaryMin") ?? "").trim();
     const maxSalary = String(fd.get("jobSalaryMax") ?? "").trim();
-    const fullnameRequirement = String(fd.get("fullnameRequirement") ?? "").trim();
-    const photoRequirement = String(fd.get("photoRequirement") ?? "").trim();
-    const genderRequirement = String(fd.get("genderRequirement") ?? "").trim();
-    const domicileRequirement = String(fd.get("domicileRequirement") ?? "").trim();
-    const emailRequirement = String(fd.get("emailRequirement") ?? "").trim();
-    const phoneRequirement = String(fd.get("phoneRequirement") ?? "").trim();
-    const linkedinRequirement = String(fd.get("linkedinRequirement") ?? "").trim();
-    const dobRequirement = String(fd.get("dobRequirement") ?? "").trim();
 
     const newErrors: Record<string, string> = {};
 
@@ -128,11 +124,47 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose }) => {
 
     setErrors(newErrors);
 
-    if (Object.keys(newErrors).length === 0) {
-      console.log("form values", { jobName, jobType, jobDescription, candidatesNeeded, minSalary, maxSalary, fullnameRequirement, photoRequirement, genderRequirement, domicileRequirement, emailRequirement, phoneRequirement, linkedinRequirement, dobRequirement });
-      onClose();
+    if (Object.keys(newErrors).length !== 0) return;
+
+    // prepare payload
+    const payload: any = {
+      name: jobName,
+      type: jobType,
+      desc: jobDescription,
+      candidates_needed: Number(candidatesNeeded) || null,
+      created_at: new Date().toISOString(),
+    };
+
+    // only include salary fields when provided and > 0
+    const minNum = minSalary ? Number(minSalary) : 0;
+    const maxNum = maxSalary ? Number(maxSalary) : 0;
+    if (minNum > 0) payload.min_sal = minNum;
+    if (maxNum > 0) payload.max_sal = maxNum;
+
+    setSubmitting(true);
+    try {
+      const res = await addJob(payload);
+      if (res.error) {
+        // show a simple error message
+        setErrors({ form: "Failed to create job. Try again." });
+        console.error("addJob error", res.error);
+      } else {
+        // success
+        onClose();
+      }
+    } catch (err) {
+      console.error(err);
+      setErrors({ form: "Unexpected error. Try again." });
+    } finally {
+      setSubmitting(false);
     }
   };
+
+  async function addJob(job: Record<string, any>) {
+    // insert only the keys present in payload
+    const { data, error } = await supabase.from("jobs").insert([job]).select();
+    return { data, error };
+  }
 
   return (
     <main
@@ -167,7 +199,6 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose }) => {
               <input
                 id="jobName"
                 name="jobName"
-                
                 type="text"
                 placeholder="Ex. Front End Engineer"
                 className={`w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-primary ${
@@ -175,7 +206,6 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose }) => {
                 }`}
                 aria-invalid={!!errors.jobName}
                 aria-describedby={errors.jobName ? "jobName-error" : undefined}
-
               />
               {errors.jobName && (
                 <p id="jobName-error" className="text-danger text-sm mt-1">
@@ -194,7 +224,6 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose }) => {
               <select
                 id="jobType"
                 name="jobType"
-                
                 defaultValue=""
                 className={`w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-primary ${
                   errors.jobType ? "border-danger" : ""
@@ -229,7 +258,6 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose }) => {
                 id="jobDescription"
                 name="jobDescription"
                 rows={5}
-                
                 aria-readonly="true"
                 placeholder="Ex."
                 className={`w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-primary ${
@@ -261,7 +289,6 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose }) => {
               <input
                 id="candidatesNeeded"
                 name="candidatesNeeded"
-                
                 type="number"
                 min={1}
                 placeholder="Ex. 2"
