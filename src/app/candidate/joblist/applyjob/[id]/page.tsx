@@ -4,6 +4,9 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import CameraCapture from "@/components/CameraCapture";
+import DefaultAvatar from "@/assets/Default Avatar.png";
+import SelectField from "@/components/Form/Select";
+import Input from "@/components/Form/Input";
 
 interface Job {
   id: string;
@@ -24,6 +27,18 @@ const ApplyJob: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previewSrc, setPreviewSrc] = useState<string>("");
+  const [domicile, setDomicile] = useState<string>("");
+
+  const domiciles = [
+    "Jakarta",
+    "Bandung",
+    "Surabaya",
+    "Yogyakarta",
+    "Bali",
+    "Medan",
+    "Makassar",
+    "Semarang",
+  ];
 
   useEffect(() => {
     if (!id) return;
@@ -75,8 +90,8 @@ const ApplyJob: React.FC = () => {
         {error && <p className="mt-4 text-red-600">Error: {error}</p>}
 
         {job && (
-          <main className="flex bg-primaryBg flex-col w-full border-2 gap-6 max-w-3xl mx-auto">
-            <section className="flex justify-between items-center p-8 ">
+          <main className="flex bg-primaryBg flex-col w-full border-2 max-w-3xl mx-auto">
+            <section className="flex justify-between items-center p-8">
               <div className="flex items-center gap-4">
                 <button
                   type="button"
@@ -99,15 +114,15 @@ const ApplyJob: React.FC = () => {
                     />
                   </svg>
                 </button>
-                <div className="text-2xl font-semibold">
+                <div className="text-xl font-semibold">
                   Apply {job.name} at {job?.title || "Rakamin"}
                 </div>
               </div>
               <div>ℹ️ This field required to fill</div>
             </section>
-            <section className="p-8">
+            <section className="px-16 mb-8">
               <form
-                className="flex flex-col gap-6"
+                className="flex flex-col gap-6 text-sm font-medium"
                 onSubmit={(e) => {
                   e.preventDefault();
                   const fd = new FormData(e.currentTarget as HTMLFormElement);
@@ -121,28 +136,22 @@ const ApplyJob: React.FC = () => {
                 }}
               >
                 <div className="flex flex-col gap-2">
-                  <label htmlFor="profile" className="font-semibold">
-                    Profile photo
-                  </label>
+                  <span className="text-danger font-semibold">* Required</span>
+                  <label htmlFor="profile">Profile photo</label>
                   <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-24 h-24 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center border-2 border-gray-200">
+                    <div className="flex flex-col items-start gap-4">
+                      <div className="w-36 h-36 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center border-2 border-gray-200">
                         <img
                           id="profilePreview"
                           alt="profile preview"
                           className="w-full h-full object-cover"
-                          src={previewSrc || ""}
+                          src={previewSrc || DefaultAvatar.src}
                         />
                       </div>
 
-                      <div className="flex flex-col gap-2">
-                        <CameraCapture
-                          onCapture={(dataUrl) => setPreviewSrc(dataUrl)}
-                        />
-                        <span className="text-sm text-gray-500">
-                          Use your camera to take a profile photo. JPG/PNG.
-                        </span>
-                      </div>
+                      <CameraCapture
+                        onCapture={(dataUrl) => setPreviewSrc(dataUrl)}
+                      />
                     </div>
                     <div className="flex flex-col gap-2">
                       <input
@@ -151,7 +160,7 @@ const ApplyJob: React.FC = () => {
                         name="profile"
                         accept="image/*"
                         className="text-sm"
-                        value={previewSrc || ""}
+                        value={previewSrc || DefaultAvatar.src}
                         onChange={(e) => {
                           const file = (e.target as HTMLInputElement)
                             .files?.[0];
@@ -168,71 +177,67 @@ const ApplyJob: React.FC = () => {
                   </div>
                 </div>
 
+                <Input
+                  label="Full name"
+                  type="text"
+                  id="fullName"
+                  name="fullName"
+                  required
+                  placeholder="Enter your full name"
+                />
+
+                <Input
+                  label="Date of birth"
+                  type="date"
+                  id="dob"
+                  name="dob"
+                  required
+                />
+
                 <div className="flex flex-col gap-2">
-                  <label htmlFor="fullName" className="font-semibold">
-                    Full name
+                  <label className="font-medium">
+                    Pronoun (Gender)
+                    <span className="text-danger font-semibold">*</span>
                   </label>
-                  <input
-                    type="text"
-                    id="fullName"
-                    name="fullName"
+                  <div className="flex items-center gap-6">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="pronoun"
+                        value="she/her"
+                        className="h-5 w-5 accent-primary"
+                      />
+                      <span>She / Her (Female)</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="pronoun"
+                        value="he/him"
+                        className="h-5 w-5 accent-primary"
+                      />
+                      <span>He / Him (Male)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <SelectField
+                    label="Domicile"
                     required
-                    className="border-2 border-gray-200 p-2 rounded-md"
-                    placeholder="Enter your full name"
+                    placeholder="Select domicile"
+                    options={domiciles}
+                    value={domicile}
+                    onChange={(val) => setDomicile(val ?? "")}
+                    search
                   />
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label htmlFor="dob" className="font-semibold">
-                    Date of birth
-                  </label>
-                  <input
-                    type="date"
-                    id="dob"
-                    name="dob"
-                    required
-                    className="border-2 border-gray-200 p-2 rounded-md"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="pronoun" className="font-semibold">
-                    Pronoun
-                  </label>
-                  <select
-                    id="pronoun"
-                    name="pronoun"
-                    className="border-2 border-gray-200 p-2 rounded-md"
-                    defaultValue=""
-                    required
-                  >
-                    <option value="" disabled>
-                      Select pronoun
-                    </option>
-                    <option value="she/her">She / Her</option>
-                    <option value="he/him">He / Him</option>
-                    <option value="they/them">They / Them</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="domicile" className="font-semibold">
-                    Domicile
-                  </label>
-                  <input
-                    type="text"
-                    id="domicile"
-                    name="domicile"
-                    required
-                    className="border-2 border-gray-200 p-2 rounded-md"
-                    placeholder="City, Country"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="phone" className="font-semibold">
+                  <label htmlFor="phone">
                     Phone number
+                    <span className="text-danger font-semibold">*</span>
                   </label>
                   <input
                     type="tel"
@@ -240,36 +245,27 @@ const ApplyJob: React.FC = () => {
                     name="phone"
                     required
                     className="border-2 border-gray-200 p-2 rounded-md"
-                    placeholder="+62 8123 4567 890"
+                    placeholder="8XXXXXXXXX"
                   />
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="email" className="font-semibold">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    required
-                    className="border-2 border-gray-200 p-2 rounded-md"
-                    placeholder="you@example.com"
-                  />
-                </div>
+                <Input
+                  label="Email"
+                  type="email"
+                  id="email"
+                  name="email"
+                  required
+                  placeholder="you@example.com"
+                />
 
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="linkedin" className="font-semibold">
-                    LinkedIn profile
-                  </label>
-                  <input
-                    type="url"
-                    id="linkedin"
-                    name="linkedin"
-                    className="border-2 border-gray-200 p-2 rounded-md"
-                    placeholder="https://www.linkedin.com/in/your-profile"
-                  />
-                </div>
+                <Input
+                  label="LinkedIn profile"
+                  type="url"
+                  id="linkedin"
+                  name="linkedin"
+                  required
+                  placeholder="https://www.linkedin.com/in/your-profile"
+                />
 
                 <div className="flex justify-center w-full">
                   <button

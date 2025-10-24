@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
-import Button from "@/components/Button";
+import Button from "@/components/Form/Button";
 import JobFormModal from "@/components/JobModalForm"; // import modal
 import CreateJobBg from "@/assets/CreateJobBG.jpg";
 import EmptyState from "@/assets/Empty State.svg";

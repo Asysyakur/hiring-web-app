@@ -5,7 +5,7 @@ import Hand1 from "@/assets/Hand Vector (1).svg";
 import Hand2 from "@/assets/Hand Vector (2).svg";
 import Hand3 from "@/assets/Hand Vector (3).svg";
 import Image from "next/image";
-import Button from "./Button";
+import Button from "./Form/Button";
 import { drawLandmarksOverlay } from "./CameraOverlay/LandmarksOverlay";
 import { drawCountdownOverlay } from "./CameraOverlay/CountdownOverlay";
 
@@ -112,7 +112,15 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
     if (isCountdownActiveRef.current) return;
 
     // gambar overlay pose hanya jika belum countdown
-    drawLandmarksOverlay(landmarks, detectedPose, requiredPose, videoRef, canvasRef, isCountdownActiveRef, stepRef)();
+    drawLandmarksOverlay(
+      landmarks,
+      detectedPose,
+      requiredPose,
+      videoRef,
+      canvasRef,
+      isCountdownActiveRef,
+      stepRef
+    )();
 
     const detected = detectPoseFromLandmarks(landmarks);
 
@@ -274,13 +282,26 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
 
   return (
     <>
-      <button
-        type="button"
-        className="px-3 py-2 bg-primary text-white rounded-md hover:bg-primaryDark transition"
-        onClick={openCamera}
-      >
-        Take picture
-      </button>
+      <div className="flex items-center justify-center gap-2 px-4 py-2 bg-primaryBg text-primaryText text-medium font-bold rounded-xl border-2 hover:bg-gray-100 transition">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth="3.5"
+          stroke="currentColor"
+          className="size-4"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
+          />
+        </svg>
+
+        <button type="button" onClick={openCamera}>
+          Take a Picture
+        </button>
+      </div>
 
       {showCamera && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">

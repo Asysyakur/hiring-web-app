@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import Input from "./Form/Input";
+import TextArea from "./Form/TextArea";
+import SelectField from "./Form/Select";
 
 interface JobFormModalProps {
   isOpen: boolean;
@@ -189,149 +192,48 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose }) => {
         {/* form */}
         <form onSubmit={handleSubmit}>
           <section className="space-y-4 p-6 overflow-y-auto max-h-[70vh]">
-            <div>
-              <label
-                htmlFor="jobName"
-                className="block text-sm font-medium mb-1"
-              >
-                Job Name <span className="text-danger">*</span>
-              </label>
-              <input
-                id="jobName"
-                name="jobName"
-                type="text"
-                placeholder="Ex. Front End Engineer"
-                className={`w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.jobName ? "border-danger" : ""
-                }`}
-                aria-invalid={!!errors.jobName}
-                aria-describedby={errors.jobName ? "jobName-error" : undefined}
-              />
-              {errors.jobName && (
-                <p id="jobName-error" className="text-danger text-sm mt-1">
-                  {errors.jobName}
-                </p>
-              )}
-            </div>
+            <Input
+              label="Job Name"
+              name="jobName"
+              type="text"
+              placeholder="Ex. Front End Engineer"
+              error={errors.jobName}
+              required
+            />
+            
+            <SelectField
+              label="Job Type"
+              name="jobType"
+              options={[
+                "Full Time",
+                "Part Time",
+                "Contract",
+                "Internship",
+                "Freelance",
+              ]}
+              placeholder="Select job type"
+              error={errors.jobType}
+              required
+            />
 
-            <div>
-              <label
-              htmlFor="jobType"
-              className="block text-sm font-medium mb-1"
-              >
-              Job Type <span className="text-danger">*</span>
-              </label>
+            <TextArea
+              label="Job Description"
+              name="jobDescription"
+              rows={5}
+              placeholder="Ex. We are looking for a skilled Front End Engineer to join our team..."
+              error={errors.jobDescription}
+              required
+            />
 
-              <div className="relative">
-              <select
-                id="jobType"
-                name="jobType"
-                defaultValue=""
-                className={`w-full appearance-none rounded-lg px-4 py-2 pr-10 border transition-colors duration-150
-                bg-white text-gray-700
-                focus:outline-none focus:ring-2 focus:ring-primary
-                hover:border-gray-400
-                ${errors.jobType ? "border-danger" : "border-gray-300"}`}
-                aria-invalid={!!errors.jobType}
-                aria-describedby={errors.jobType ? "jobType-error" : undefined}
-              >
-                <option value="" disabled>
-                Select job type
-                </option>
-                <option value="full_time">Full Time</option>
-                <option value="part_time">Part Time</option>
-                <option value="contract">Contract</option>
-                <option value="internship">Internship</option>
-                <option value="freelance">Freelance</option>
-              </select>
-
-              {/* custom chevron */}
-              <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
-                <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
-                >
-                <path
-                  fillRule="evenodd"
-                  d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
-                  clipRule="evenodd"
-                />
-                </svg>
-              </span>
-              </div>
-
-              {errors.jobType && (
-              <p id="jobType-error" className="text-danger text-sm mt-1">
-                {errors.jobType}
-              </p>
-              )}
-            </div>
-
-            <div>
-              <label
-                htmlFor="jobDescription"
-                className="block text-sm font-medium mb-1"
-              >
-                Job Description <span className="text-danger">*</span>
-              </label>
-              <textarea
-                id="jobDescription"
-                name="jobDescription"
-                rows={5}
-                aria-readonly="true"
-                placeholder="Ex. We are looking for a skilled Front End Engineer to join our team..."
-                className={`w-full resize-y border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.jobDescription ? "border-danger" : ""
-                }`}
-                aria-invalid={!!errors.jobDescription}
-                aria-describedby={
-                  errors.jobDescription ? "jobDescription-error" : undefined
-                }
-              />
-              {errors.jobDescription && (
-                <p
-                  id="jobDescription-error"
-                  className="text-danger text-sm mt-1"
-                >
-                  {errors.jobDescription}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label
-                htmlFor="candidatesNeeded"
-                className="block text-sm font-medium mb-1"
-              >
-                Number of Candidates Needed{" "}
-                <span className="text-danger">*</span>
-              </label>
-              <input
-                id="candidatesNeeded"
-                name="candidatesNeeded"
-                type="number"
-                min={1}
-                placeholder="Ex. 2"
-                className={`w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.candidatesNeeded ? "border-danger" : ""
-                }`}
-                aria-invalid={!!errors.candidatesNeeded}
-                aria-describedby={
-                  errors.candidatesNeeded ? "candidatesNeeded-error" : undefined
-                }
-              />
-              {errors.candidatesNeeded && (
-                <p
-                  id="candidatesNeeded-error"
-                  className="text-danger text-sm mt-1"
-                >
-                  {errors.candidatesNeeded}
-                </p>
-              )}
-            </div>
+            <Input
+              label="Number of Candidates Needed"
+              name="candidatesNeeded"
+              type="number"
+              min={1}
+              placeholder="Ex. 2"
+              error={errors.candidatesNeeded}
+              required
+            />
 
             <hr className="my-4 border-t-2 border-dashed border-gray-300" />
 
@@ -339,28 +241,19 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose }) => {
 
             <div className="flex items-center gap-4">
               <div className="flex-1">
-                <label
-                  htmlFor="jobSalaryMin"
-                  className="block text-sm font-medium mb-1"
-                >
-                  Minimum Estimated Salary
-                </label>
-                <div className="flex">
-                  <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0">
-                    Rp
-                  </span>
-                  <input
-                    id="jobSalaryMin"
-                    name="jobSalaryMin"
-                    type="number"
-                    min={1000000}
-                    max={100000000}
-                    step={100000}
-                    placeholder="7.000.000"
-                    aria-describedby="salaryHelp"
-                    className="w-full border rounded-r-lg p-2 border-l-0 focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
+                <Input
+                  label="Minimum Estimated Salary"
+                  id="jobSalaryMin"
+                  name="jobSalaryMin"
+                  type="number"
+                  min={1000000}
+                  max={100000000}
+                  step={100000}
+                  placeholder="7.000.000"
+                  leftAddon="Rp"
+                  error={errors.jobSalaryMin}
+                  aria-describedby="salaryHelp"
+                />
               </div>
 
               <div className="text-xl mt-5 text-gray-500 hidden md:block">
@@ -368,28 +261,17 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose }) => {
               </div>
 
               <div className="flex-1">
-                <label
-                  htmlFor="jobSalaryMax"
-                  className="block text-sm font-medium mb-1"
-                >
-                  Maximum Estimated Salary
-                </label>
-                <div className="flex">
-                  <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0">
-                    Rp
-                  </span>
-                  <input
-                    id="jobSalaryMax"
-                    name="jobSalaryMax"
-                    type="number"
-                    min={1000000}
-                    max={100000000}
-                    step={100000}
-                    placeholder="8.000.000"
-                    aria-describedby="salaryHelp"
-                    className="w-full border rounded-r-lg p-2 border-l-0 focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
+                <Input
+                  label="Maximum Estimated Salary"
+                  id="jobSalaryMax"
+                  name="jobSalaryMax"
+                  type="number"
+                  min={1000000}
+                  max={100000000}
+                  step={100000}
+                  placeholder="8.000.000"
+                  leftAddon="Rp"
+                />
               </div>
             </div>
 
