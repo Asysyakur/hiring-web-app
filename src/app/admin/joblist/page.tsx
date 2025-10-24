@@ -11,7 +11,7 @@ import { supabase } from "@/lib/supabase";
 import CardSkeleton from "@/components/CardSkeleton";
 import { useRouter } from "next/navigation";
 
-const JobListPage: React.FC = () => {
+const AdminJobListPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [jobs, setJobs] = useState<Jobs[]>([]);
   const [loading, setLoading] = useState(true);
@@ -206,4 +206,4 @@ const JobListPage: React.FC = () => {
   );
 };
 
-export default JobListPage;
+export default AdminJobListPage;

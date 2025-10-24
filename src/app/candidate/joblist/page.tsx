@@ -34,7 +34,7 @@ const JobListPage: React.FC = () => {
   };
 
   const handleChangePage = (jobId: string) => {
-    router.push(`/admin/managejob/${jobId}`);
+    router.push(`/candidate/joblist/applyjob/${jobId}`);
   };
 
   return (
@@ -167,6 +167,9 @@ const JobListPage: React.FC = () => {
                                   <Button
                                     label="Apply"
                                     variant="secondary"
+                                    onClick={() =>
+                                      handleChangePage(selectedJob.id)
+                                    }
                                   />
                                 </div>
                               </div>
