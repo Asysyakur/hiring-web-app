@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import CameraCapture from "@/components/CameraCapture";
@@ -32,6 +32,7 @@ const ApplyJob: React.FC = () => {
   const [previewSrc, setPreviewSrc] = useState<string>("");
   const [domicile, setDomicile] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const domiciles = [
     "Jakarta",
@@ -74,12 +75,55 @@ const ApplyJob: React.FC = () => {
     fetchJob();
   }, [id]);
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.currentTarget);
+    const payload: Record<string, any> = {};
+    formData.forEach((v, k) => (payload[k] = v));
+
+    payload["job_id"] = id;
+    payload["profile_photo"] = previewSrc || DefaultAvatar.src;
+    payload["domicile"] = domicile;
+    payload["phone"] = phone;
+
+    // --- ✅ Validasi manual sebelum kirim
+    const newErrors: Record<string, string> = {};
+
+    if (!payload.fullName) newErrors.fullName = "Full name is required";
+    if (!payload.dobPicker) newErrors.dobPicker = "Date of birth is required";
+    if (!payload.pronoun) newErrors.pronoun = "Please select a pronoun";
+    if (!payload.domicile) newErrors.domicile = "Domicile is required";
+    if (!payload.phone) newErrors.phone = "Phone number is required";
+    if (!payload.email) newErrors.email = "Email is required";
+    if (!payload.linkedin) newErrors.linkedin = "LinkedIn profile is required";
+
+    setFormErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      return;
+    }
+
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("applications")
+      .insert([payload]);
+    setLoading(false);
+
+    if (error) {
+      console.error("Error submitting:", error);
+    } else {
+      alert("✅ Application submitted successfully!");
+      router.push("/success");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">
       <div className="max-w-3xl mx-auto p-6">
         {!id && <p className="text-yellow-600">No job ID provided.</p>}
 
-        {loading && (
+        {loading && !job && (
           <div className="animate-pulse flex flex-col gap-6">
             <div className="h-6 bg-background rounded w-1/4" />
             <div className="h-[400px] bg-gray-100 rounded-xl" />
@@ -124,18 +168,15 @@ const ApplyJob: React.FC = () => {
 
             {/* Form */}
             <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const fd = new FormData(e.currentTarget);
-                const obj: Record<string, any> = {};
-                fd.forEach((v, k) => (obj[k] = v));
-                console.log("Profile form submit", obj);
-              }}
+              id="applyForm"
+              onSubmit={handleSubmit}
               className="p-8 px-16 flex flex-col gap-6 overflow-y-auto max-h-[75vh]"
             >
               {/* Profile Photo */}
               <div className="flex flex-col gap-3 -mt-8">
-                <p className="text-destructive font-medium text-sm mb-4">* Required</p>
+                <p className="text-destructive font-medium text-sm mb-4">
+                  * Required
+                </p>
                 <Label className="font-medium">Profile photo</Label>
                 <div className="flex flex-col items-start gap-2">
                   <div className="w-32 h-32 rounded-full border-2 border-border overflow-hidden bg-gray-100 shadow-sm">
@@ -149,34 +190,35 @@ const ApplyJob: React.FC = () => {
                     onCapture={(dataUrl) => setPreviewSrc(dataUrl)}
                   />
                 </div>
-                <input
-                  type="hidden"
-                  name="profile"
-                  value={previewSrc || DefaultAvatar.src}
+              </div>
+
+              <div>
+                <Input
+                  label="Full name"
+                  id="fullName"
+                  name="fullName"
+                  placeholder="Enter your full name"
+                  required
+                  error={formErrors.fullName}
                 />
               </div>
 
-              <Input
-                label="Full name"
-                id="fullName"
-                name="fullName"
-                placeholder="Enter your full name"
-                required
-              />
+              <div>
+                <DatePicker
+                  name="dobPicker"
+                  label="Date of birth"
+                  id="dobPicker"
+                  placeholder="Select your date of birth"
+                  required
+                  error={formErrors.dobPicker}
+                />
+              </div>
 
-              <DatePicker
-                label="Date of birth"
-                id="dobPicker"
-                placeholder="Select your date of birth"
-                onChange={(date) => console.log("Selected date:", date)}
-              />
-
-              {/* Pronoun */}
-              <div className="flex flex-col gap-2">
+              <div>
                 <Label>
                   Pronoun (Gender) <span className="text-destructive">*</span>
                 </Label>
-                <div className="flex flex-wrap gap-6">
+                <div className="flex flex-wrap gap-6 mt-1">
                   {[
                     { label: "She / Her (Female)", value: "she/her" },
                     { label: "He / Him (Male)", value: "he/him" },
@@ -195,53 +237,69 @@ const ApplyJob: React.FC = () => {
                     </label>
                   ))}
                 </div>
+                {formErrors.pronoun && (
+                  <p className="text-destructive text-sm mt-3">{formErrors.pronoun}</p>
+                )}
               </div>
 
-              <SelectField
-                label="Domicile"
-                required
-                placeholder="Select domicile"
-                options={domiciles}
-                value={domicile}
-                onChange={(val) => setDomicile(val ?? "")}
-                search
-              />
+              <div>
+                <SelectField
+                  label="Domicile"
+                  required
+                  placeholder="Select domicile"
+                  options={domiciles}
+                  value={domicile}
+                  onChange={(val) => setDomicile(val ?? "")}
+                  search
+                  error={formErrors.domicile}
+                />
+              </div>
 
-              <PhoneInput
-                label="Phone number"
-                required
-                placeholder="8XXXXXXXXX"
-                value={phone}
-                onChange={(val) => setPhone(val)}
-              />
+              <div>
+                <PhoneInput
+                  label="Phone number"
+                  required
+                  placeholder="8XXXXXXXXX"
+                  value={phone}
+                  onChange={(val) => setPhone(val)}
+                  error={formErrors.phone}
+                />
+              </div>
 
-              <Input
-                label="Email"
-                type="email"
-                id="email"
-                name="email"
-                placeholder="you@example.com"
-                required
-              />
+              <div>
+                <Input
+                  label="Email"
+                  type="email"
+                  id="email"
+                  name="email"
+                  placeholder="you@example.com"
+                  required
+                  error={formErrors.email}
+                />
+              </div>
 
-              <Input
-                label="LinkedIn profile"
-                type="url"
-                id="linkedin"
-                name="linkedin"
-                placeholder="https://www.linkedin.com/in/your-profile"
-                required
-              />
+              <div>
+                <Input
+                  label="LinkedIn profile"
+                  type="url"
+                  id="linkedin"
+                  name="linkedin"
+                  placeholder="https://www.linkedin.com/in/your-profile"
+                  required
+                  error={formErrors.linkedin}
+                />
+              </div>
             </form>
 
-            {/* Sticky Save Button */}
+            {/* Submit */}
             <div className="sticky bottom-0 w-full bg-white border-t border-border py-4 flex justify-center px-6">
               <button
                 type="submit"
                 form="applyForm"
-                className="px-8 py-3 bg-primary text-white font-medium rounded-xl shadow-md hover:bg-primaryDark transition w-full "
+                className="px-8 py-3 bg-primary text-white font-medium rounded-xl shadow-md hover:bg-primaryDark transition w-full disabled:opacity-60 disabled:cursor-not-allowed"
+                disabled={loading}
               >
-                Submit
+                {loading ? "Submitting..." : "Submit"}
               </button>
             </div>
           </main>

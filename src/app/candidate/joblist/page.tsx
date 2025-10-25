@@ -94,7 +94,7 @@ const JobListPage: React.FC = () => {
                                 <div className="flex justify-between items-start">
                                   <div className="space-y-2">
                                     <div className="flex gap-3 mb-1 items-center">
-                                      <div className="text-success bg-success bg-opacity-5 border border-successBorder w-fit font-bold px-3 py-1 rounded-lg text-xs">
+                                      <div className="text-white bg-success bg-opacity-5 border border-successBorder w-fit font-bold px-3 py-1 rounded-lg text-xs">
                                         Active
                                       </div>
                                       <div className="text-gray-500 border border-gray-300 w-fit font-medium px-3 py-1 rounded-md text-xs">

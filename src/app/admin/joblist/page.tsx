@@ -112,7 +112,7 @@ const AdminJobListPage: React.FC = () => {
                     <div className="flex justify-between items-end ">
                       <div className="space-y-2">
                         <div className="flex gap-4 mb-1">
-                          <div className="text-success bg-success bg-opacity-5  border border-successBorder w-fit font-bold mb-1 px-4 py-1 rounded-lg">
+                          <div className="text-success bg-success-foreground bg-opacity-5  border border-success w-fit font-bold mb-1 px-4 py-1 rounded-lg">
                             Active
                           </div>
                           <div className="text-gray-500 border border-gray-300 w-fit font-medium mb-1 px-4 py-1 rounded-md">

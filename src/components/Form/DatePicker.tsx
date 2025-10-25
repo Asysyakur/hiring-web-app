@@ -13,6 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 
 export interface DatePickerProps {
+  name?: string;
   value?: Date;
   onChange?: (date?: Date) => void;
   label?: string;
@@ -21,9 +22,11 @@ export interface DatePickerProps {
   className?: string;
   labelClassName?: string;
   required?: boolean;
+  error?: string;
 }
 
 export function DatePicker({
+  name,
   value,
   onChange,
   label = "Date of birth",
@@ -32,6 +35,7 @@ export function DatePicker({
   className = "",
   labelClassName = "",
   required,
+  error,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
   const [internalDate, setInternalDate] = React.useState<Date | undefined>(
@@ -52,28 +56,44 @@ export function DatePicker({
     setOpen(false);
   };
 
+  const inputId = id ?? "date";
+
   return (
     <div className={cn("flex flex-col gap-2", className)}>
+      {/* Label */}
       {label && (
         <Label
-          htmlFor={id}
+          htmlFor={inputId}
           className={cn("text-sm font-medium", labelClassName)}
         >
-          {label}{" "}
+          {label}
           {required && <span className="text-destructive ml-0.5">*</span>}
         </Label>
       )}
+
+      {/* Hidden input supaya formData bisa baca nilainya */}
+      <input
+        type="hidden"
+        name={name}
+        value={selected ? selected.toISOString() : ""}
+      />
+
+      {/* Popover (button input) */}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
-            id={id}
+            id={inputId}
             variant="outline"
             className={cn(
-              "w-full justify-between items-center text-sm rounded-md border border-input bg-background",
-              "hover:bg-muted focus:ring-2 focus:ring-primary focus:ring-offset-0",
-              "font-normal text-gray-700",
-              "pl-3 pr-2"
+              "w-full justify-between items-center text-sm rounded-md border bg-background transition-all",
+              "hover:bg-muted focus-visible:ring-2 focus-visible:ring-offset-0",
+              error
+                ? "border-destructive focus-visible:ring-destructive"
+                : "border-input focus-visible:ring-ring",
+              "pl-3 pr-2 font-normal text-gray-700"
             )}
+            aria-invalid={!!error}
+            aria-describedby={error ? `${inputId}-error` : undefined}
           >
             <span className="flex items-center gap-2">
               <CalendarDays className="h-4 w-4 text-gray-700" />
@@ -90,6 +110,7 @@ export function DatePicker({
             <ChevronDown className="h-4 w-4 text-gray-500" />
           </Button>
         </PopoverTrigger>
+
         <PopoverContent
           align="start"
           className="p-0 mt-1 w-auto rounded-md shadow-lg border border-gray-200"
@@ -103,6 +124,13 @@ export function DatePicker({
           />
         </PopoverContent>
       </Popover>
+
+      {/* Error Message */}
+      {error && (
+        <p id={`${inputId}-error`} className="text-destructive text-sm mt-1">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
