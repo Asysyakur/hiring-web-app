@@ -282,7 +282,7 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
 
   return (
     <>
-      <div className="flex items-center justify-center gap-2 px-4 py-2 bg-primaryBg text-primaryText text-medium font-bold rounded-xl border-2 hover:bg-gray-100 transition">
+      <div className="flex items-center justify-center gap-2 px-4 py-2 bg-primaryBg text-primaryText text-sm font-bold rounded-xl border-2 hover:bg-gray-100 transition">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"

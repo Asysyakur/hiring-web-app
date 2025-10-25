@@ -1,15 +1,20 @@
-import React, { forwardRef } from "react";
+"use client";
+
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
+import { Input as ShadcnInput } from "@/components/ui/input"; // base input shadcn
 
 type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   label?: string;
-  error?: string | undefined;
+  error?: string;
   labelClassName?: string;
   wrapperClassName?: string;
   leftAddon?: React.ReactNode;
   rightAddon?: React.ReactNode;
 };
 
-const Input = forwardRef<HTMLInputElement, InputProps>(
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
     {
       label,
@@ -17,9 +22,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       id,
       name,
       required,
-      className = "",
-      labelClassName = "block text-sm font-medium mb-1",
-      wrapperClassName = "flex flex-col gap-2",
+      className,
+      labelClassName,
+      wrapperClassName,
       leftAddon,
       rightAddon,
       ...props
@@ -28,59 +33,54 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
   ) => {
     const inputId = id ?? name ?? undefined;
 
-    // class untuk input padding tergantung addon
-    const inputPaddingClass = leftAddon ? "pl-2" : "pl-3";
-    const inputPaddingRightClass = rightAddon ? "pr-2" : "pr-3";
-
     return (
-      <div className={wrapperClassName}>
+      <div className={cn("flex flex-col gap-2", wrapperClassName)}>
         {label && (
-          <label htmlFor={inputId} className={labelClassName}>
-            {label} {required && <span className="text-danger">*</span>}
-          </label>
+          <Label
+            htmlFor={inputId}
+            className={cn("text-sm font-medium", labelClassName)}
+          >
+            {label}{" "}
+            {required && <span className="text-destructive ml-0.5">*</span>}
+          </Label>
         )}
 
-       <div
-          className={`relative w-full cursor-default border-2 rounded-md ${
-            error ? "border-danger" : "border-gray-200"
-          }`}
+        <div
+          className={cn(
+            "flex items-center rounded-md border border-input bg-background text-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-0 transition-all",
+            error ? "border-destructive focus-within:ring-destructive" : "", className
+          )}
         >
-          <div className="flex items-center">
-
-          {/* Left addon (contoh: Rp) */}
           {leftAddon && (
-            <span
-            aria-hidden="true"
-            className="inline-flex items-center px-3 text-sm text-gray-700 select-none rounded-l-md"
-            >
+            <span className="px-3 text-sm text-muted-foreground">
               {leftAddon}
             </span>
           )}
 
-          <input
+          <ShadcnInput
             id={inputId}
             name={name}
             ref={ref}
-            className={`w-full border-none py-2 pl-3 pr-2 text-sm text-gray-800 rounded-md focus:outline-2 focus:outline-primary ${inputPaddingClass} ${inputPaddingRightClass} ${className}`}
             aria-invalid={!!error}
             aria-describedby={error ? `${inputId}-error` : undefined}
+            className={cn(
+              "border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 flex-1",
+              leftAddon && "pl-0",
+              rightAddon && "pr-0",
+              className
+            )}
             {...props}
-            />
+          />
 
-          {/* Right addon (opsional) */}
           {rightAddon && (
-            <span
-            aria-hidden="true"
-            className="inline-flex items-center px-3 text-sm text-gray-700 select-none rounded-r-md"
-            >
+            <span className="px-3 text-sm text-muted-foreground">
               {rightAddon}
             </span>
           )}
-          </div>
         </div>
 
         {error && (
-          <p id={`${inputId}-error`} className="text-danger text-sm mt-1">
+          <p id={`${inputId}-error`} className="text-destructive text-sm mt-1">
             {error}
           </p>
         )}

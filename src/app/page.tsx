@@ -27,8 +27,8 @@ export default function HomePage() {
             onClick={() => setSelectedRoleState("admin")}
             className={`border-2 rounded-xl py-3 text-lg font-medium transition-all duration-300 ${
               selectedRole === "admin"
-                ? "border-danger bg-danger/10 text-danger"
-                : "border-border hover:border-danger hover:bg-danger/5"
+                ? "border-destructive bg-destructive/10 text-destructive"
+                : "border-border hover:border-destructive hover:bg-destructive/5"
             }`}
           >
             👨‍💼 Admin (Recruiter)

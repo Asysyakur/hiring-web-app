@@ -31,13 +31,13 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       <div className={wrapperClassName}>
         {label && (
           <label htmlFor={inputId} className={labelClassName}>
-            {label} {required && <span className="text-danger">*</span>}
+            {label} {required && <span className="text-destructive">*</span>}
           </label>
         )}
 
         <div
           className={`relative w-full cursor-default border-2 rounded-md ${
-            error ? "border-danger" : "border-gray-200"
+            error ? "border-destructive" : "border-gray-200"
           }`}
         >
           <div className="flex items-start">
@@ -55,7 +55,7 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
         </div>
 
         {error && (
-          <p id={`${inputId}-error`} className="text-danger text-sm mt-1">
+          <p id={`${inputId}-error`} className="text-destructive text-sm mt-1">
             {error}
           </p>
         )}

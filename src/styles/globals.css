@@ -8,9 +8,106 @@ body {
   margin: 0;
   padding: 0;
   font-family: var(--font-geist-sans), sans-serif;
-  background-color: #fafafa;
+  background-color: #ffffff;
 }
 
 * {
   box-sizing: border-box;
+}
+
+@layer base {
+  :root {
+    /* 🌈 Warna utama (dari palet kamu) */
+    --background: 0 0% 100%; /* dari #FFFFFF */
+    --foreground: 0 0% 12%; /* dari #1E1F21 */
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 12%;
+
+    /* 🎨 Warna utama */
+    --primary: 182 99% 31%; /* dari #01959F */
+    --primary-foreground: 0 0% 100%;
+
+    /* 🎨 Warna sekunder */
+    --secondary: 44 96% 61%; /* dari #FBC037 */
+    --secondary-foreground: 0 0% 12%;
+
+    /* ✨ Accent (gunakan primaryLight agar harmonis) */
+    --accent: 185 70% 59%; /* dari #4DD0E1 */
+    --accent-foreground: 0 0% 12%;
+
+    /* 💥 Warna destructive (destructive) */
+    --destructive: 353 82% 49%; /* dari #E11428 */
+    --destructive-foreground: 0 0% 100%;
+
+    /* ✅ Warna success */
+    --success: 158 33% 39%; /* dari #43936C */
+    --success-border: 156 35% 78%; /* dari #B8DBCA */
+    --success-foreground: 0 0% 100%;
+
+    /* 🔘 Border, input, ring */
+    --border: 0 0% 87%;
+    --input: 0 0% 87%;
+    --ring: 182 99% 31%; /* sama dengan primary */
+
+    /* ✳️ Warna tambahan */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+
+    /* 📊 Warna untuk chart (optional) */
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+
+    --radius: 0.5rem;
+  }
+
+  /* 🌙 Dark mode */
+  .dark {
+    --background: 0 0% 8%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 182 70% 35%; /* redup dari #01959F */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 44 80% 45%; /* lebih gelap dari #FBC037 */
+    --secondary-foreground: 0 0% 100%;
+
+    --accent: 185 65% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 353 70% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 158 30% 30%;
+    --success-border: 156 20% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 182 70% 35%;
+
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 70%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
