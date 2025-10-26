@@ -1,11 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
-import roleReducer from "@/features/roleSlice";
-import jobReducer from "@/features/jobSlice";
+import authReducer from "@/features/auth/authSlice";
 
 export const store = configureStore({
   reducer: {
-    role: roleReducer,
-    job: jobReducer,
+    auth: authReducer,
   },
 });
 

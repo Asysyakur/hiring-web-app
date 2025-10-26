@@ -4,11 +4,14 @@ import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { setRole } from "@/features/roleSlice";
 import { useState } from "react";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function HomePage() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const [selectedRole, setSelectedRoleState] = useState<"admin" | "candidate" | null>(null);
+  const [selectedRole, setSelectedRoleState] = useState<
+    "admin" | "candidate" | null
+  >(null);
 
   const handleContinue = () => {
     if (!selectedRole) return;
@@ -17,47 +20,53 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 transition-colors duration-500">
-      <div className="bg-card text-card-foreground p-8 rounded-3xl shadow-lg w-[90%] max-w-md text-center transition-colors duration-500">
-        <h1 className="text-2xl font-bold mb-4">Welcome to Hiring Management App</h1>
-        <p className="text-muted-foreground mb-8">Please select your role to continue</p>
+    <ProtectedRoute>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 transition-colors duration-500">
+        <div className="bg-card text-card-foreground p-8 rounded-3xl shadow-lg w-[90%] max-w-md text-center transition-colors duration-500">
+          <h1 className="text-2xl font-bold mb-4">
+            Welcome to Hiring Management App
+          </h1>
+          <p className="text-muted-foreground mb-8">
+            Please select your role to continue
+          </p>
 
-        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
+            <button
+              onClick={() => setSelectedRoleState("admin")}
+              className={`border-2 rounded-xl py-3 text-lg font-medium transition-all duration-300 ${
+                selectedRole === "admin"
+                  ? "border-destructive bg-destructive/10 text-destructive"
+                  : "border-border hover:border-destructive hover:bg-destructive/5"
+              }`}
+            >
+              👨‍💼 Admin (Recruiter)
+            </button>
+
+            <button
+              onClick={() => setSelectedRoleState("candidate")}
+              className={`border-2 rounded-xl py-3 text-lg font-medium transition-all duration-300 ${
+                selectedRole === "candidate"
+                  ? "border-secondary bg-secondary/10 text-secondary"
+                  : "border-border hover:border-secondary hover:bg-secondary/5"
+              }`}
+            >
+              💼 Candidate
+            </button>
+          </div>
+
           <button
-            onClick={() => setSelectedRoleState("admin")}
-            className={`border-2 rounded-xl py-3 text-lg font-medium transition-all duration-300 ${
-              selectedRole === "admin"
-                ? "border-destructive bg-destructive/10 text-destructive"
-                : "border-border hover:border-destructive hover:bg-destructive/5"
+            onClick={handleContinue}
+            disabled={!selectedRole}
+            className={`mt-8 w-full py-3 rounded-xl font-semibold text-white transition-all duration-300 ${
+              selectedRole
+                ? "bg-primary hover:bg-primary/90"
+                : "bg-muted cursor-not-allowed text-muted-foreground"
             }`}
           >
-            👨‍💼 Admin (Recruiter)
-          </button>
-
-          <button
-            onClick={() => setSelectedRoleState("candidate")}
-            className={`border-2 rounded-xl py-3 text-lg font-medium transition-all duration-300 ${
-              selectedRole === "candidate"
-                ? "border-secondary bg-secondary/10 text-secondary"
-                : "border-border hover:border-secondary hover:bg-secondary/5"
-            }`}
-          >
-            💼 Candidate
+            Continue →
           </button>
         </div>
-
-        <button
-          onClick={handleContinue}
-          disabled={!selectedRole}
-          className={`mt-8 w-full py-3 rounded-xl font-semibold text-white transition-all duration-300 ${
-            selectedRole
-              ? "bg-primary hover:bg-primary/90"
-              : "bg-muted cursor-not-allowed text-muted-foreground"
-          }`}
-        >
-          Continue →
-        </button>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }

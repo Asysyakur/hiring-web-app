@@ -12,6 +12,7 @@ type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   wrapperClassName?: string;
   leftAddon?: React.ReactNode;
   rightAddon?: React.ReactNode;
+  errorBorder?: boolean;
 };
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -27,6 +28,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       wrapperClassName,
       leftAddon,
       rightAddon,
+      errorBorder = false,
       ...props
     },
     ref
@@ -48,7 +50,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <div
           className={cn(
             "flex items-center rounded-md border border-input bg-background text-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-0 transition-all",
-            error ? "border-destructive focus-within:ring-destructive" : "", className
+            error || errorBorder ? "border-destructive focus-within:ring-destructive" : "", className
           )}
         >
           {leftAddon && (
