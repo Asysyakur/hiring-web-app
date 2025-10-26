@@ -89,3 +89,47 @@ export const logoutUser = createAsyncThunk("auth/logoutUser", async () => {
   if (error) throw error;
   return null;
 });
+
+
+// Fetch profile lengkap user
+export const fetchProfile = createAsyncThunk(
+  "auth/fetchProfile",
+  async (_, { rejectWithValue }) => {
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError || !user) return rejectWithValue("User tidak ditemukan");
+
+      // Ambil data dari tabel profiles
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select(`
+          id,
+          full_name,
+          avatar_url,
+          company_attribute (
+            id,
+            company_name,
+            industry,
+            company_size
+          ),
+          candidate_attribute (
+            id,
+            experience,
+            skills
+          )
+        `)
+        .eq("id", user.id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      return profile; // ini akan dikirim ke Redux
+    } catch (err: any) {
+      return rejectWithValue(err.message || "Gagal memuat data profil");
+    }
+  }
+);
+

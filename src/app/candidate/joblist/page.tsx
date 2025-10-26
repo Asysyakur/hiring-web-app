@@ -20,7 +20,7 @@ const JobListPage: React.FC = () => {
   useEffect(() => {
     fetchJobs();
   }, []);
-
+  console.log("👤 Authenticated user in JobListPage:", jobs);
   const fetchJobs = async () => {
     setLoading(true);
     try {

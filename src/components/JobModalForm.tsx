@@ -9,6 +9,7 @@ import SelectField from "./Form/Select";
 interface JobFormModalProps {
   isOpen: boolean;
   onClose: () => void;
+  companyId: string;
 }
 
 // compact radio group component
@@ -93,7 +94,11 @@ const RadioOptions: React.FC<{
   );
 };
 
-const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose }) => {
+const JobFormModal: React.FC<JobFormModalProps> = ({
+  isOpen,
+  onClose,
+  companyId,
+}) => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -106,15 +111,29 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (submitting) return; // prevent duplicate submits
+
+    // mark as submitting early to avoid duplicate work while validating
+    setSubmitting(true);
+
     const form = e.currentTarget;
     const fd = new FormData(form);
 
-    const jobName = String(fd.get("jobName") ?? "").trim();
-    const jobType = String(fd.get("jobType") ?? "").trim();
-    const jobDescription = String(fd.get("jobDescription") ?? "").trim();
-    const candidatesNeeded = String(fd.get("candidatesNeeded") ?? "").trim();
-    const minSalary = String(fd.get("jobSalaryMin") ?? "").trim();
-    const maxSalary = String(fd.get("jobSalaryMax") ?? "").trim();
+    const getString = (key: string) => {
+      const v = fd.get(key);
+      if (v === null) return "";
+      if (typeof v === "string") return v.trim();
+      // ignore file objects or other non-string values
+      if (v instanceof File) return "";
+      return String(v).trim();
+    };
+
+    const jobName = getString("jobName");
+    const jobType = getString("jobType");
+    const jobDescription = getString("jobDescription");
+    const candidatesNeeded = getString("candidatesNeeded");
+    const minSalary = getString("jobSalaryMin");
+    const maxSalary = getString("jobSalaryMax");
 
     const newErrors: Record<string, string> = {};
 
@@ -127,7 +146,11 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose }) => {
 
     setErrors(newErrors);
 
-    if (Object.keys(newErrors).length !== 0) return;
+    if (Object.keys(newErrors).length !== 0) {
+      // stop submitting if validation failed
+      setSubmitting(false);
+      return;
+    }
 
     // prepare payload
     const payload: any = {
@@ -136,15 +159,25 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose }) => {
       desc: jobDescription,
       candidates_needed: Number(candidatesNeeded) || null,
       created_at: new Date().toISOString(),
+      company_id: companyId,
+      min_profile: {
+        fullname: getString("fullnameRequirement"),
+        photo: getString("photoRequirement"),
+        gender: getString("genderRequirement"),
+        domicile: getString("domicileRequirement"),
+        email: getString("emailRequirement"),
+        phone: getString("phoneRequirement"),
+        linkedin: getString("linkedinRequirement"),
+        dob: getString("dobRequirement"),
+      },
     };
 
-    // only include salary fields when provided and > 0
+    // only include salary fields when provided and valid (> 0)
     const minNum = minSalary ? Number(minSalary) : 0;
     const maxNum = maxSalary ? Number(maxSalary) : 0;
-    if (minNum > 0) payload.min_sal = minNum;
-    if (maxNum > 0) payload.max_sal = maxNum;
+    if (Number.isFinite(minNum) && minNum > 0) payload.min_sal = minNum;
+    if (Number.isFinite(maxNum) && maxNum > 0) payload.max_sal = maxNum;
 
-    setSubmitting(true);
     try {
       const res = await addJob(payload);
       if (res.error) {
@@ -200,7 +233,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose }) => {
               error={errors.jobName}
               required
             />
-            
+
             <SelectField
               label="Job Type"
               name="jobType"

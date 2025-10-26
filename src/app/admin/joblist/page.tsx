@@ -11,11 +11,13 @@ import { supabase } from "@/lib/supabase";
 import CardSkeleton from "@/components/CardSkeleton";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useAuth } from "@/hooks/useAuth";
 
 const AdminJobListPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [jobs, setJobs] = useState<Jobs[]>([]);
   const [loading, setLoading] = useState(true);
+  const { company } = useAuth();
 
   const router = useRouter();
 
@@ -204,6 +206,7 @@ const AdminJobListPage: React.FC = () => {
         <JobFormModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
+          companyId={company?.id || ""}
         />
       </div>
     </ProtectedRoute>

@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { loginUser, registerUser, loginWithGoogle, logoutUser, signInWithMagicLink } from "./authThunks";
+import { loginUser, registerUser, loginWithGoogle, logoutUser, signInWithMagicLink, fetchProfile } from "./authThunks";
 import { AuthState } from "./types";
 
 const initialState: AuthState = {
@@ -79,6 +79,17 @@ const authSlice = createSlice({
       .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message ?? null;
+      })
+      .addCase(fetchProfile.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload; // isi profile lengkap (dari DB)
+      })
+      .addCase(fetchProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   },
 });
