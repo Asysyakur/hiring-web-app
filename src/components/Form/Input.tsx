@@ -13,6 +13,7 @@ type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   leftAddon?: React.ReactNode;
   rightAddon?: React.ReactNode;
   errorBorder?: boolean;
+  value?: string;
 };
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -29,6 +30,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       leftAddon,
       rightAddon,
       errorBorder = false,
+      value,
       ...props
     },
     ref
@@ -65,6 +67,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             aria-invalid={!!error}
             aria-describedby={error ? `${inputId}-error` : undefined}
+            value={value}
             className={cn(
               "border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 flex-1",
               leftAddon && "pl-0",

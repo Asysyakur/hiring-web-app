@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Button from "@/components/Form/Button";
 import Logo from "@/assets/Logo.svg";
@@ -119,7 +119,8 @@ const JobListPage: React.FC = () => {
                                     <div className="flex items-center gap-1">
                                       <MapPin className="w-4 h-4 text-gray-500" />
                                       <div className="text-sm text-gray-500 font-medium">
-                                        {job.location ?? "Location not set"}
+                                        {job.company.location ??
+                                          "Location not set"}
                                       </div>
                                     </div>
                                     {((job.min_sal ?? 0) > 0 ||
