@@ -26,6 +26,7 @@ const ManageJobPage: React.FC = () => {
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [candidatesData, setCandidatesData] = useState<any[]>([]);
 
   useEffect(() => {
     if (!id) return;
@@ -46,6 +47,14 @@ const ManageJobPage: React.FC = () => {
         } else {
           setJob(data);
         }
+        const { data: applicationsData, error: applicationsError } =
+          await supabase.from("applications").select("*").eq("job_id", id);
+        if (applicationsError) {
+          setError(applicationsError.message);
+          setCandidatesData([]);
+        } else {
+          setCandidatesData(applicationsData);
+        }
       } catch (err: any) {
         setError(err.message ?? "Unknown error");
         setJob(null);
@@ -53,10 +62,9 @@ const ManageJobPage: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchJob();
   }, [id]);
-
+  
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-primaryBg transition-colors duration-500">
@@ -89,9 +97,7 @@ const ManageJobPage: React.FC = () => {
               </h2>
               <section className="mt-8 border-2 rounded-lg p-6 bg-white">
                 <div>
-                  {!job ||
-                  !(job as any).candidates ||
-                  (job as any).candidates.length === 0 ? (
+                  {candidatesData.length === 0 ? (
                     <div className="mt-8 w-full min-h-[220px] md:min-h-[500px] flex flex-col items-center justify-center p-6 md:p-12 lg:p-32 text-center space-y-4">
                       <Image
                         src={EmptyStateFile}
@@ -130,41 +136,37 @@ const ManageJobPage: React.FC = () => {
                         </thead>
 
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {(job as any).candidates.map(
-                            (c: any, idx: number) => (
-                              <tr key={c.id ?? idx}>
-                                <td className="px-4 py-3 text-sm text-gray-700">
-                                  {idx + 1}
-                                </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
-                                  {c.name ?? "—"}
-                                </td>
-                                <td className="px-4 py-3 text-sm text-gray-700">
-                                  {c.email ?? "—"}
-                                </td>
-                                <td className="px-4 py-3 text-sm">
-                                  <span
-                                    className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                      c.status === "hired"
-                                        ? "bg-green-100 text-green-800"
-                                        : c.status === "rejected"
-                                        ? "bg-red-100 text-red-800"
-                                        : "bg-yellow-100 text-yellow-800"
-                                    }`}
-                                  >
-                                    {c.status ?? "pending"}
-                                  </span>
-                                </td>
-                                <td className="px-4 py-3 text-sm text-gray-500">
-                                  {c.applied_at
-                                    ? new Date(
-                                        c.applied_at
-                                      ).toLocaleDateString()
-                                    : "—"}
-                                </td>
-                              </tr>
-                            )
-                          )}
+                          {candidatesData.map((c, idx) => (
+                            <tr key={c.id ?? idx}>
+                              <td className="px-4 py-3 text-sm text-gray-700">
+                                {idx + 1}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-900">
+                                {c.fullName ?? "—"}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-700">
+                                {c.email ?? "—"}
+                              </td>
+                              <td className="px-4 py-3 text-sm">
+                                <span
+                                  className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                    c.status === "hired"
+                                      ? "bg-green-100 text-green-800"
+                                      : c.status === "rejected"
+                                      ? "bg-red-100 text-red-800"
+                                      : "bg-yellow-100 text-yellow-800"
+                                  }`}
+                                >
+                                  {c.status ?? "pending"}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-500">
+                                {c.created_at
+                                  ? new Date(c.created_at).toLocaleDateString()
+                                  : "—"}
+                              </td>
+                            </tr>
+                          ))}
                         </tbody>
                       </table>
                     </div>

@@ -73,7 +73,7 @@ const ApplyJob: React.FC = () => {
       setApplicationData({
         userId: user.id,
         photoProfile: candidate.avatar_url,
-        fullName: candidate.full_name,
+        fullName: user.full_name,
         email: user.email,
         linkedin: candidate.linkedin,
         domicile: candidate.domicile,
@@ -91,7 +91,7 @@ const ApplyJob: React.FC = () => {
       setLinkedin(applicationData.linkedin || "");
       setDomicile(applicationData.domicile || "");
       setPronoun(applicationData.pronoun || "");
-      setDob(applicationData.dob || "");
+      setDob(applicationData.dob ? new Date(applicationData.dob) : null);
       setPhone(applicationData.phone || "");
     }
   }, [applicationData]);
@@ -188,9 +188,28 @@ const ApplyJob: React.FC = () => {
     setLoading(true);
     const { error } = await supabase.from("applications").insert([payload]);
     setLoading(false);
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({
+        full_name: payload.fullName,
+        avatar_url: payload.profile_photo,
+        email: payload.email,
+      })
+      .eq("id", user?.id);
+    const { error: candidateError } = await supabase
+      .from("candidate_attributes")
+      .update({
+        user_id: user?.id,
+        domicile: payload.domicile,
+        pronoun: payload.pronoun,
+        linkedin: payload.linkedin,
+        dob: payload.dobPicker,
+      })
+      .eq("user_id", user?.id);
 
-    if (error) {
+    if (error || profileError || candidateError) {
       console.error("Error submitting:", error);
+      alert("❌ Failed to submit application. Please try again.");
     } else {
       alert("✅ Application submitted successfully!");
       router.push("/success");
@@ -275,7 +294,9 @@ const ApplyJob: React.FC = () => {
                             required={isRequired}
                             error={formErrors.dobPicker}
                             value={dob}
-                            onChange={(val) => setDob(val)}
+                            onChange={(val) =>
+                              setDob(val ? new Date(val) : null)
+                            }
                           />
                         );
                       case "pronoun":
