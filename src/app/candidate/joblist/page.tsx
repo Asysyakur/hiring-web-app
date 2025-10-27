@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import CardSkeleton from "@/components/CardSkeleton";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { MapPin, Banknote } from "lucide-react";
 
 const JobListPage: React.FC = () => {
   const [jobs, setJobs] = useState<Jobs[]>([]);
@@ -20,11 +21,13 @@ const JobListPage: React.FC = () => {
   useEffect(() => {
     fetchJobs();
   }, []);
-  console.log("👤 Authenticated user in JobListPage:", jobs);
+
   const fetchJobs = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.from("jobs").select("*");
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("*, company: company_attributes(id, name, location, logo)");
       if (error) throw error;
       setJobs(data ?? []);
     } catch (err) {
@@ -88,37 +91,41 @@ const JobListPage: React.FC = () => {
                                   key={job.id ?? JSON.stringify(job)}
                                   className={`bg-card rounded-lg p-6 shadow-lg cursor-pointer transition-all ${
                                     isSelected
-                                      ? "ring-2 ring-primary"
+                                      ? "ring-2 ring-primary bg-[#F7FEFF]"
                                       : "hover:shadow-xl"
                                   }`}
                                   onClick={() => setSelectedJob(job)}
                                 >
-                                  <div className="flex justify-between items-start">
-                                    <div className="space-y-2">
-                                      <div className="flex gap-3 mb-1 items-center">
-                                        <div className="text-white bg-success bg-opacity-5 border border-successBorder w-fit font-bold px-3 py-1 rounded-lg text-xs">
-                                          Active
-                                        </div>
-                                        <div className="text-gray-500 border border-gray-300 w-fit font-medium px-3 py-1 rounded-md text-xs">
-                                          started on{" "}
-                                          {job.created_at
-                                            ? new Date(
-                                                job.created_at
-                                              ).toLocaleDateString("en-GB", {
-                                                day: "numeric",
-                                                month: "short",
-                                                year: "numeric",
-                                              })
-                                            : "Unknown"}
+                                  <div className="flex flex-col items-start gap-2">
+                                    <div className="flex gap-3 mb-1 items-center">
+                                      <Image
+                                        src={job.company.logo ?? ""}
+                                        alt={job.company.name ?? "Company Logo"}
+                                        width={52}
+                                        height={52}
+                                        className="object-contain"
+                                      />
+                                      <div className="flex flex-col">
+                                        <h4 className="text-lg font-semibold">
+                                          {job.name ?? "Untitled position"}
+                                        </h4>
+                                        <div className="text-gray-500">
+                                          {job.company.name ??
+                                            "Unknown Company"}
                                         </div>
                                       </div>
-
-                                      <h4 className="text-lg font-semibold">
-                                        {job.name ?? "Untitled position"}
-                                      </h4>
-
-                                      {((job.min_sal ?? 0) > 0 ||
-                                        (job.max_sal ?? 0) > 0) && (
+                                    </div>
+                                    <hr className="border-gray-300 border-t w-full border-dashed" />
+                                    <div className="flex items-center gap-1">
+                                      <MapPin className="w-4 h-4 text-gray-500" />
+                                      <div className="text-sm text-gray-500 font-medium">
+                                        {job.location ?? "Location not set"}
+                                      </div>
+                                    </div>
+                                    {((job.min_sal ?? 0) > 0 ||
+                                      (job.max_sal ?? 0) > 0) && (
+                                      <div className="flex items-center gap-1">
+                                        <Banknote className="w-4 h-4 text-gray-500" />
                                         <div className="text-gray-500 font-medium text-sm">
                                           {(job.min_sal ?? 0) > 0 &&
                                           (job.max_sal ?? 0) > 0 ? (
@@ -137,8 +144,8 @@ const JobListPage: React.FC = () => {
                                             </>
                                           )}
                                         </div>
-                                      )}
-                                    </div>
+                                      </div>
+                                    )}
                                   </div>
                                 </li>
                               );
@@ -167,7 +174,7 @@ const JobListPage: React.FC = () => {
                                           "Untitled position"}
                                       </h2>
                                       <h2 className="text-base text-gray-500 font-normal">
-                                        {selectedJob.company ?? "Rakamin"}
+                                        {selectedJob.company.name ?? "Rakamin"}
                                       </h2>
                                     </div>
                                   </div>
