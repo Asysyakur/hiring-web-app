@@ -12,6 +12,7 @@ import DatePicker from "@/components/Form/DatePicker";
 import { Label } from "@/components/ui/label";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
+import Loading from "@/components/Loading";
 
 interface Job {
   id: string;
@@ -67,12 +68,12 @@ const ApplyJob: React.FC = () => {
     "Makassar",
     "Semarang",
   ];
-
+console.log(applicationData);
   useEffect(() => {
     if (user && candidate) {
       setApplicationData({
         userId: user.id,
-        photoProfile: candidate.avatar_url,
+        photoProfile: user.avatar_url,
         fullName: user.full_name,
         email: user.email,
         linkedin: candidate.linkedin,
@@ -221,7 +222,7 @@ const ApplyJob: React.FC = () => {
       <div className="min-h-screen bg-gray-50 text-gray-800">
         <div className="max-w-3xl mx-auto p-6">
           {!id && <p className="text-yellow-600">No job ID provided.</p>}
-          {loading && !job && !applicationData && <p>Loading...</p>}
+          {loading && !job && !applicationData && <Loading />}
           {error && <p className="text-red-600">{error}</p>}
 
           {job && applicationData && (

@@ -2,22 +2,25 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchJobDetail } from "@/features/jobDetailSlice";
+import type { RootState, AppDispatch } from "@/store";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { ArrowUpDown } from "lucide-react";
 import Image from "next/image";
 import EmptyStateFile from "@/assets/Empty State File.svg";
 import Navbar from "@/components/Navbar";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import Loading from "@/components/Loading";
 
 const ManageJobPage = () => {
   const params = useParams();
   const id = params?.id as string | undefined;
 
-  const [job, setJob] = useState<any>(null);
-  const [candidates, setCandidates] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const dispatch = useDispatch<AppDispatch>();
+  const { job, candidates, loading, error } = useSelector(
+    (state: RootState) => state.jobDetails
+  );
 
   // Pagination & Filtering
   const [page, setPage] = useState(1);
@@ -41,31 +44,12 @@ const ManageJobPage = () => {
     { id: "linkedin", label: "LINK LINKEDIN" },
   ]);
 
-  // Fetch Data
+  // Fetch data once
   useEffect(() => {
-    if (!id) return;
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const { data: jobData } = await supabase
-          .from("jobs")
-          .select("*")
-          .eq("id", id)
-          .single();
-        const { data: apps } = await supabase
-          .from("applications")
-          .select("*")
-          .eq("job_id", id);
-        setJob(jobData);
-        setCandidates(apps ?? []);
-      } catch (e: any) {
-        setError(e.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [id]);
+    if (id) {
+      dispatch(fetchJobDetail(id));
+    }
+  }, [id, dispatch]);
 
   // Sorting logic
   const sortedCandidates = useMemo(() => {
@@ -82,7 +66,6 @@ const ManageJobPage = () => {
     return sortable;
   }, [candidates, sortConfig]);
 
-  // Filter & paginate
   const filtered = sortedCandidates.filter(
     (c) =>
       c.fullName?.toLowerCase().includes(search.toLowerCase()) ||
@@ -93,7 +76,6 @@ const ManageJobPage = () => {
     page * rowsPerPage
   );
 
-  // Sort handler
   const handleSort = (key: string) => {
     setSortConfig((prev) => ({
       key,
@@ -101,7 +83,6 @@ const ManageJobPage = () => {
     }));
   };
 
-  // Drag reorder handler
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
     const reordered = Array.from(columns);
@@ -110,8 +91,7 @@ const ManageJobPage = () => {
     setColumns(reordered);
   };
 
-  if (loading)
-    return <div className="flex justify-center mt-20">Loading...</div>;
+  if (loading) return <Loading />;
   if (error)
     return <div className="text-center text-red-600 mt-20">{error}</div>;
 
@@ -183,33 +163,16 @@ const ManageJobPage = () => {
                                   {...prov.dragHandleProps}
                                   className="px-6 py-3 text-left whitespace-nowrap select-none"
                                 >
-                                  {col.label &&
-                                    (col.id === "fullName" ? (
-                                      <div className="flex items-center gap-3 font-semibold text-gray-700">
-                                        <input
-                                          type="checkbox"
-                                          className="w-4 h-4 accent-blue-500"
-                                        />
-                                        {col.label}
-                                        <ArrowUpDown
-                                          size={12}
-                                          className="opacity-50"
-                                        />
-                                      </div>
-                                    ) : (
-                                      <button
-                                        onClick={() => handleSort(col.id)}
-                                        className="flex items-center gap-1 font-semibold text-gray-700"
-                                      >
-                                        {col.label}
-                                        {col.id !== "select" && (
-                                          <ArrowUpDown
-                                            size={12}
-                                            className="opacity-50"
-                                          />
-                                        )}
-                                      </button>
-                                    ))}
+                                  <button
+                                    onClick={() => handleSort(col.id)}
+                                    className="flex items-center gap-1 font-semibold text-gray-700"
+                                  >
+                                    {col.label}
+                                    <ArrowUpDown
+                                      size={12}
+                                      className="opacity-50"
+                                    />
+                                  </button>
                                 </th>
                               )}
                             </Draggable>
@@ -219,7 +182,7 @@ const ManageJobPage = () => {
                       </thead>
 
                       <tbody className="divide-y divide-gray-100">
-                        {paginated.map((c, idx) => (
+                        {paginated.map((c) => (
                           <tr
                             key={c.id}
                             className="hover:bg-gray-50 transition-colors duration-200"

@@ -1,8 +1,8 @@
-// src/components/ProtectedRoute.tsx
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import Loading from "./Loading";
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -10,13 +10,15 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/login"); // redirect ke halaman login
+      router.replace("/login");
     }
   }, [user, loading, router]);
 
-  if (loading) {
-    return <div className="text-center mt-20">Loading...</div>;
+  if ((!loading && !user)) {
+    return (
+      <Loading />
+    );
   }
 
-  return <>{user && children}</>;
+  return <>{children}</>;
 }
