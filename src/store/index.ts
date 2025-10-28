@@ -3,6 +3,7 @@ import authReducer from "@/features/auth/authSlice";
 import jobsReducerAdmin from "@/features/jobSliceAdmin";
 import jobDetailReducer from "@/features/jobDetailSlice";
 import jobsReducerCandidate from "@/features/jobSliceCandidate";
+import jobApplicationsReducer from "@/features/jobApplicationSlice";
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     adminJobs: jobsReducerAdmin,
     jobDetails: jobDetailReducer,
     candidateJobs: jobsReducerCandidate,
+    jobApplications: jobApplicationsReducer,
   },
 });
 

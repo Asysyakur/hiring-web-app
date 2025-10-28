@@ -1,64 +1,39 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "@/store";
+import {
+  fetchJobById,
+  setApplicationData,
+  updateField,
+  submitApplication,
+} from "@/features/jobApplicationSlice";
+import { useAuth } from "@/hooks/useAuth";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import CameraCapture from "@/components/CameraCapture";
-import DefaultAvatar from "@/assets/Default Avatar.png";
-import SelectField from "@/components/Form/Select";
 import Input from "@/components/Form/Input";
 import PhoneInput from "@/components/Form/PhoneInput";
+import SelectField from "@/components/Form/Select";
 import DatePicker from "@/components/Form/DatePicker";
-import { Label } from "@/components/ui/label";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import { useAuth } from "@/hooks/useAuth";
 import Loading from "@/components/Loading";
+import DefaultAvatar from "@/assets/Default Avatar.png";
+import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
-
-interface Job {
-  id: string;
-  name: string;
-  title?: string;
-  description?: string;
-  min_sal?: number;
-  max_sal?: number;
-  created_at?: string;
-  min_profile?: Record<string, "mandatory" | "optional" | "off">;
-}
 
 const ApplyJob: React.FC = () => {
   const params = useParams();
   const router = useRouter();
-  const id = params?.id as string | undefined;
-  const { candidate, user } = useAuth();
+  const dispatch = useDispatch<AppDispatch>();
+  const id = params?.id as string;
 
-  const [job, setJob] = useState<Job | null>(null);
-  const [applicationData, setApplicationData] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [previewSrc, setPreviewSrc] = useState(
-    applicationData?.photoProfile || ""
+  const { user, candidate, company } = useAuth();
+  const { job, applicationData, loading, error } = useSelector(
+    (state: RootState) => state.jobApplications
   );
-  const [domicile, setDomicile] = useState(applicationData?.domicile || "");
-  const [phone, setPhone] = useState(applicationData?.phone || "");
-  const [fullName, setFullName] = useState(applicationData?.fullName || "");
-  const [dob, setDob] = useState(applicationData?.dob || "");
-  const [pronoun, setPronoun] = useState(applicationData?.pronoun || "");
-  const [email, setEmail] = useState(applicationData?.email || "");
-  const [linkedin, setLinkedin] = useState(applicationData?.linkedin || "");
-  const fieldsOrder = [
-    "photo",
-    "fullname",
-    "dob",
-    "pronoun",
-    "gender",
-    "domicile",
-    "phone",
-    "email",
-    "linkedin",
-  ];
 
+  // 🔹 Daftar opsi untuk SelectField
   const domiciles = [
     "Jakarta",
     "Bandung",
@@ -69,81 +44,55 @@ const ApplyJob: React.FC = () => {
     "Makassar",
     "Semarang",
   ];
-  console.log(applicationData);
+
+  const fieldsOrder = [
+    "photo",
+    "fullame",
+    "dob",
+    "pronoun",
+    "gender",
+    "domicile",
+    "phone",
+    "email",
+    "linkedin",
+  ];
+
+  // 🟩 Ambil detail job
   useEffect(() => {
-    if (user && candidate) {
+    if (id) dispatch(fetchJobById(id));
+  }, [id, dispatch]);
+
+  // 🟩 Set data awal ke Redux dari user dan candidate
+  useEffect(() => {
+    if (!user || !candidate) return;
+
+    dispatch(
       setApplicationData({
-        userId: user.id,
-        photoProfile: user.avatar_url,
-        fullName: user.full_name,
-        email: user.email,
-        linkedin: candidate.linkedin,
-        domicile: candidate.domicile,
-        pronoun: candidate.pronoun,
-        dob: candidate.dob,
-      });
-    }
-  }, [user, candidate]);
+        user_id: user.id,
+        fullName: user.full_name ?? "",
+        email: user.email ?? "",
+        linkedin: candidate?.linkedin ?? "",
+        domicile: candidate?.domicile ?? "",
+        pronoun: candidate?.pronoun ?? "",
+        dob: candidate?.dob ?? null,
+        phone: candidate?.phone ?? "",
+        profile_photo: user.avatar_url ?? "",
+      })
+    );
+  }, [user, candidate, dispatch]);
 
-  useEffect(() => {
-    if (applicationData) {
-      setPreviewSrc(applicationData.photoProfile || "");
-      setFullName(applicationData.fullName || "");
-      setEmail(applicationData.email || "");
-      setLinkedin(applicationData.linkedin || "");
-      setDomicile(applicationData.domicile || "");
-      setPronoun(applicationData.pronoun || "");
-      setDob(applicationData.dob ? new Date(applicationData.dob) : null);
-      setPhone(applicationData.phone || "");
-    }
-  }, [applicationData]);
-
-  // Fetch job
-  useEffect(() => {
-    if (!id) return;
-
-    const fetchJob = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const { data, error } = await supabase
-          .from("jobs")
-          .select("*")
-          .eq("id", id)
-          .single();
-
-        if (error) {
-          setError(error.message);
-          setJob(null);
-        } else {
-          setJob(data);
-        }
-      } catch (err: any) {
-        setError(err.message ?? "Unknown error");
-        setJob(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchJob();
-  }, [id]);
-
+  // 🟩 Handle submit aplikasi
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const formData = new FormData(e.currentTarget);
-    const payload: Record<string, any> = {};
-    formData.forEach((v, k) => (payload[k] = v));
+    if (!applicationData) return;
 
-    payload["job_id"] = id;
-    payload["profile_photo"] = previewSrc || DefaultAvatar.src;
-    payload["domicile"] = domicile;
-    payload["phone"] = phone;
-    payload["job_id"] = id;
-    console.log("aa", payload);
+    const payload = {
+      ...applicationData,
+      job_id: id,
+    };
 
-    // Validasi manual berdasarkan min_profile
+    // 🔹 Validasi field sesuai job.min_profile
     const newErrors: Record<string, string> = {};
     if (job?.min_profile) {
       for (const [key, value] of Object.entries(job.min_profile)) {
@@ -154,8 +103,7 @@ const ApplyJob: React.FC = () => {
                 newErrors.fullName = "Full name is required";
               break;
             case "dob":
-              if (!payload.dobPicker)
-                newErrors.dobPicker = "Date of birth is required";
+              if (!payload.dob) newErrors.dob = "Date of birth is required";
               break;
             case "pronoun":
             case "gender":
@@ -183,250 +131,270 @@ const ApplyJob: React.FC = () => {
         }
       }
     }
+    console.log("Payload for Submission:", payload);
 
-    setFormErrors(newErrors);
-    console.log("errors", newErrors);
-    if (Object.keys(newErrors).length > 0) return;
-    setLoading(true);
-    const { error } = await supabase.from("applications").insert([payload]);
-    setLoading(false);
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .update({
-        full_name: payload.fullName,
-        avatar_url: payload.profile_photo,
-        email: payload.email,
-      })
-      .eq("id", user?.id);
-    const { error: candidateError } = await supabase
-      .from("candidate_attributes")
-      .update({
-        user_id: user?.id,
-        domicile: payload.domicile,
-        pronoun: payload.pronoun,
-        linkedin: payload.linkedin,
-        dob: payload.dobPicker,
-      })
-      .eq("user_id", user?.id);
+    if (Object.keys(newErrors).length > 0) {
+      console.log("Validation Errors:", newErrors);
+      alert("⚠️ Please fill all required fields!");
+      return;
+    }
 
-    if (error || profileError || candidateError) {
-      console.error("Error submitting:", error);
-      alert("❌ Failed to submit application. Please try again.");
-    } else {
+    const result = await dispatch(submitApplication(payload));
+    if (submitApplication.fulfilled.match(result)) {
       alert("✅ Application submitted successfully!");
       router.push("/success");
+    } else {
+      alert("❌ Failed to submit application!");
     }
   };
-  console.log(job);
+
+  // 🟩 Loading & Error states
+  if (loading && !job) return <Loading />;
+  if (error) return <p className="text-red-600">{error}</p>;
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50 text-gray-800">
         <div className="max-w-3xl mx-auto p-6">
-          {!id && <p className="text-yellow-600">No job ID provided.</p>}
-          {loading && !job && !applicationData && <Loading />}
-          {error && <p className="text-red-600">{error}</p>}
+          <main className="bg-white shadow-lg border border-border overflow-hidden">
+            {/* Header */}
+            <section className="flex items-center justify-between px-10 py-8 bg-background">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => router.back()}
+                  aria-label="Go back"
+                  className="flex items-center justify-center w-7 h-7 rounded-lg shadow-sm hover:bg-gray-100 border border-border transition"
+                >
+                  <ArrowLeft className="p-0.5" strokeWidth={2} />
+                </button>
+                <h1 className="text-lg md:text-xl font-semibold">
+                  Apply for {job?.name ?? "Job"} at {job?.title ?? "Rakamin"}
+                </h1>
+              </div>
+              <span className="text-sm text-gray-500">
+                ℹ️ This field required to fill
+              </span>
+            </section>
 
-          {job && applicationData && (
-            <main className="bg-white shadow-lg border border-border overflow-hidden">
-              {/* Header */}
-              <section className="flex items-center justify-between px-10 py-8 bg-background">
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => router.back()}
-                    aria-label="Go back"
-                    className="flex items-center justify-center w-7 h-7 rounded-lg shadow-sm hover:bg-gray-100 border border-border transition"
-                  >
-                    <ArrowLeft className="p-0.5" strokeWidth={2} />
-                  </button>
-                  <h1 className="text-lg md:text-xl font-semibold">
-                    Apply for {job.name} at {job?.title || "Rakamin"}
-                  </h1>
-                </div>
-                <span className="text-sm text-gray-500">
-                  ℹ️ This field is required to fill
-                </span>
-              </section>
+            {/* Form */}
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col gap-6 overflow-y-auto max-h-[85vh] w-full"
+            >
+              <div className="flex flex-col gap-6 px-16">
+                {fieldsOrder.map((key) => {
+                  const value = job?.min_profile?.[key];
+                  if (!value || value === "off") return null;
+                  const isRequired = value === "mandatory";
 
-              {/* Form */}
-              <form
-                id="applyForm"
-                onSubmit={handleSubmit}
-                className="flex flex-col gap-6 overflow-y-auto max-h-[85vh] w-full"
-              >
-                <div className="flex flex-col gap-6 px-16">
-                  {fieldsOrder.map((key) => {
-                    const value = job.min_profile?.[key];
-                    if (!value || value === "off") return null;
-                    const isRequired = value === "mandatory";
+                  switch (key) {
+                    case "fullname":
+                      return (
+                        <Input
+                          key={key}
+                          label="Full Name"
+                          name="fullName"
+                          placeholder="Enter your full name"
+                          required={isRequired}
+                          value={applicationData?.fullName || ""}
+                          onChange={(e) =>
+                            dispatch(
+                              updateField({
+                                key: "fullName",
+                                value: e.target.value,
+                              })
+                            )
+                          }
+                        />
+                      );
 
-                    switch (key) {
-                      case "fullname":
-                        return (
-                          <Input
-                            key={key}
-                            label="Full name"
-                            name="fullName"
-                            placeholder="Enter your full name"
-                            required={isRequired}
-                            error={formErrors.fullName}
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
+                    case "dob":
+                      return (
+                        <DatePicker
+                          key={key}
+                          label="Date of Birth"
+                          name="dob"
+                          required={isRequired}
+                          value={
+                            applicationData?.dob
+                              ? new Date(applicationData.dob)
+                              : undefined
+                          }
+                          onChange={(val) => {
+                            const dobString =
+                              val instanceof Date ? val.toISOString() : val;
+                            dispatch(
+                              updateField({
+                                key: "dob",
+                                value: dobString,
+                              })
+                            );
+                          }}
+                        />
+                      );
+
+                    case "pronoun":
+                    case "gender":
+                      return (
+                        <div key={key}>
+                          <Label>
+                            Pronoun{" "}
+                            {isRequired && (
+                              <span className="text-destructive">*</span>
+                            )}
+                          </Label>
+                          <div className="flex gap-6 mt-1">
+                            {[
+                              { label: "She / Her", value: "she/her" },
+                              { label: "He / Him", value: "he/him" },
+                            ].map((p) => (
+                              <label
+                                key={p.value}
+                                className="flex items-center gap-2 cursor-pointer"
+                              >
+                                <input
+                                  type="radio"
+                                  name="pronoun"
+                                  value={p.value}
+                                  checked={applicationData?.pronoun === p.value}
+                                  onChange={() =>
+                                    dispatch(
+                                      updateField({
+                                        key: "pronoun",
+                                        value: p.value,
+                                      })
+                                    )
+                                  }
+                                />
+                                {p.label}
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      );
+
+                    case "domicile":
+                      return (
+                        <SelectField
+                          key={key}
+                          label="Domicile"
+                          required={isRequired}
+                          options={domiciles}
+                          value={applicationData?.domicile || ""}
+                          onChange={(val) =>
+                            dispatch(
+                              updateField({
+                                key: "domicile",
+                                value: val ?? "",
+                              })
+                            )
+                          }
+                          search
+                        />
+                      );
+
+                    case "phone":
+                      return (
+                        <PhoneInput
+                          key={key}
+                          label="Phone Number"
+                          required={isRequired}
+                          placeholder="8XXXXXXXXX"
+                          value={applicationData?.phone || ""}
+                          onChange={(val) =>
+                            dispatch(updateField({ key: "phone", value: val }))
+                          }
+                        />
+                      );
+
+                    case "email":
+                      return (
+                        <Input
+                          key={key}
+                          label="Email"
+                          type="email"
+                          name="email"
+                          required={isRequired}
+                          value={applicationData?.email || ""}
+                          onChange={(e) =>
+                            dispatch(
+                              updateField({
+                                key: "email",
+                                value: e.target.value,
+                              })
+                            )
+                          }
+                        />
+                      );
+
+                    case "linkedin":
+                      return (
+                        <Input
+                          key={key}
+                          label="LinkedIn Profile"
+                          type="url"
+                          name="linkedin"
+                          placeholder="https://www.linkedin.com/in/your-profile"
+                          required={isRequired}
+                          value={applicationData?.linkedin || ""}
+                          onChange={(e) =>
+                            dispatch(
+                              updateField({
+                                key: "linkedin",
+                                value: e.target.value,
+                              })
+                            )
+                          }
+                        />
+                      );
+
+                    case "photo":
+                      return (
+                        <div key={key} className="flex flex-col gap-2 w-fit">
+                          {isRequired && (
+                            <span className="text-destructive font-medium text-sm">
+                              * Required
+                            </span>
+                          )}
+                          <Label>Profile Photo </Label>
+                          <img
+                            src={
+                              applicationData?.profile_photo || DefaultAvatar.src
+                            }
+                            alt="Profile preview"
+                            className="w-32 h-32 rounded-full border-2 border-border object-cover"
                           />
-                        );
-                      case "dob":
-                        return (
-                          <DatePicker
-                            key={key}
-                            label="Date of birth"
-                            name="dobPicker"
-                            placeholder="Select your date of birth"
-                            required={isRequired}
-                            error={formErrors.dobPicker}
-                            value={dob}
-                            onChange={(val) =>
-                              setDob(val ? new Date(val) : null)
+                          <CameraCapture
+                            onCapture={(dataUrl) =>
+                              dispatch(
+                                updateField({
+                                  key: "profile_photo",
+                                  value: dataUrl,
+                                })
+                              )
                             }
                           />
-                        );
-                      case "pronoun":
-                      case "gender":
-                        return (
-                          <div key={key}>
-                            <Label>
-                              Pronoun (Gender){" "}
-                              {isRequired && (
-                                <span className="text-destructive">*</span>
-                              )}
-                            </Label>
-                            <div className="flex flex-wrap gap-6 mt-1">
-                              {[
-                                {
-                                  label: "She / Her (Female)",
-                                  value: "she/her",
-                                },
-                                { label: "He / Him (Male)", value: "he/him" },
-                              ].map((p) => (
-                                <label
-                                  key={p.value}
-                                  className="flex items-center gap-2 cursor-pointer"
-                                >
-                                  <input
-                                    type="radio"
-                                    name="pronoun"
-                                    value={p.value}
-                                    className="h-5 w-5 accent-primary"
-                                    required={isRequired}
-                                    checked={pronoun === p.value}
-                                    onChange={() => setPronoun(p.value)}
-                                  />
-                                  <span>{p.label}</span>
-                                </label>
-                              ))}
-                            </div>
-                            {formErrors.pronoun && (
-                              <p className="text-destructive text-sm mt-3">
-                                {formErrors.pronoun}
-                              </p>
-                            )}
-                          </div>
-                        );
-                      case "domicile":
-                        return (
-                          <SelectField
-                            key={key}
-                            label="Domicile"
-                            required={isRequired}
-                            placeholder="Select domicile"
-                            options={domiciles}
-                            value={domicile}
-                            onChange={(val) => setDomicile(val ?? "")}
-                            search
-                            error={formErrors.domicile}
-                          />
-                        );
-                      case "phone":
-                        return (
-                          <PhoneInput
-                            key={key}
-                            label="Phone number"
-                            required={isRequired}
-                            placeholder="8XXXXXXXXX"
-                            value={phone}
-                            onChange={(val) => setPhone(val)}
-                            error={formErrors.phone}
-                          />
-                        );
-                      case "email":
-                        return (
-                          <Input
-                            key={key}
-                            label="Email"
-                            type="email"
-                            name="email"
-                            placeholder="you@example.com"
-                            required={isRequired}
-                            error={formErrors.email}
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                          />
-                        );
-                      case "linkedin":
-                        return (
-                          <Input
-                            key={key}
-                            label="LinkedIn profile"
-                            type="url"
-                            name="linkedin"
-                            placeholder="https://www.linkedin.com/in/your-profile"
-                            required={isRequired}
-                            error={formErrors.linkedin}
-                            value={linkedin}
-                            onChange={(e) => setLinkedin(e.target.value)}
-                          />
-                        );
-                      case "photo":
-                        return (
-                          <div
-                            key={key}
-                            className="flex flex-col gap-2 w-fit justify-start"
-                          >
-                            {isRequired && (
-                              <div className="text-destructive text-sm font-medium">
-                                * Required
-                              </div>
-                            )}
-                            <Label>Profile photo </Label>
-                            <div className="w-32 h-32 rounded-full border-2 border-border overflow-hidden bg-gray-100 shadow-sm">
-                              <img
-                                src={previewSrc || DefaultAvatar.src}
-                                alt="Profile preview"
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            <CameraCapture
-                              onCapture={(dataUrl) => setPreviewSrc(dataUrl)}
-                            />
-                          </div>
-                        );
-                      default:
-                        return null;
-                    }
-                  })}
-                </div>
-                {/* Submit button */}
-                <div className="sticky bottom-0 w-full bg-white border-t border-border py-4 flex justify-center px-6">
-                  <button
-                    type="submit"
-                    form="applyForm"
-                    className="px-8 py-3 bg-primary text-white font-medium rounded-xl shadow-md hover:bg-primaryDark transition w-full disabled:opacity-60 disabled:cursor-not-allowed"
-                    disabled={loading}
-                  >
-                    {loading ? "Submitting..." : "Submit"}
-                  </button>
-                </div>
-              </form>
-            </main>
-          )}
+                        </div>
+                      );
+
+                    default:
+                      return null;
+                  }
+                })}
+              </div>
+
+              {/* Submit Button */}
+              <div className="sticky bottom-0 w-full bg-white border-t border-border py-4 flex justify-center px-6">
+                <button
+                  type="submit"
+                  className="px-8 py-3 bg-primary text-white font-medium rounded-xl shadow-md hover:bg-primaryDark transition w-full disabled:opacity-60 disabled:cursor-not-allowed"
+                  disabled={loading}
+                >
+                  {loading ? "Submitting..." : "Submit"}
+                </button>
+              </div>
+            </form>
+          </main>
         </div>
       </div>
     </ProtectedRoute>
