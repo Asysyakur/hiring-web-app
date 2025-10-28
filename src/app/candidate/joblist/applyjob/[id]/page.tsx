@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import Loading from "@/components/Loading";
+import { ArrowLeft } from "lucide-react";
 
 interface Job {
   id: string;
@@ -68,7 +69,7 @@ const ApplyJob: React.FC = () => {
     "Makassar",
     "Semarang",
   ];
-console.log(applicationData);
+  console.log(applicationData);
   useEffect(() => {
     if (user && candidate) {
       setApplicationData({
@@ -235,20 +236,7 @@ console.log(applicationData);
                     aria-label="Go back"
                     className="flex items-center justify-center w-7 h-7 rounded-lg shadow-sm hover:bg-gray-100 border border-border transition"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth="3"
-                      stroke="currentColor"
-                      className="w-4 h-4"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
-                      />
-                    </svg>
+                    <ArrowLeft className="p-0.5" strokeWidth={2} />
                   </button>
                   <h1 className="text-lg md:text-xl font-semibold">
                     Apply for {job.name} at {job?.title || "Rakamin"}

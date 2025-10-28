@@ -8,6 +8,7 @@ import Image from "next/image";
 import Button from "./Form/Button";
 import { drawLandmarksOverlay } from "./CameraOverlay/LandmarksOverlay";
 import { drawCountdownOverlay } from "./CameraOverlay/CountdownOverlay";
+import { ChevronRight, X, Upload } from "lucide-react";
 
 interface CameraCaptureProps {
   onCapture: (dataUrl: string) => void;
@@ -283,20 +284,7 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
   return (
     <>
       <div className="flex items-center justify-center gap-2 px-4 py-2 bg-primaryBg text-primaryText text-sm font-bold rounded-xl border-2 hover:bg-gray-100 transition">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="3.5"
-          stroke="currentColor"
-          className="size-4"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
-          />
-        </svg>
+        <Upload strokeWidth={3} size={18} />
 
         <button type="button" onClick={openCamera}>
           Take a Picture
@@ -323,19 +311,7 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
                 aria-label="Close"
                 title="Close"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
+                <X />
               </button>
             </div>
 
@@ -457,20 +433,7 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
                           {/* static chevron between steps (no animations, no transitions) */}
                           {i < arr.length - 1 && (
                             <div className="mx-4 flex items-center" aria-hidden>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                strokeWidth="3"
-                                stroke="currentColor"
-                                className="size-6 -mx-3"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="m8.25 4.5 7.5 7.5-7.5 7.5"
-                                />
-                              </svg>
+                              <ChevronRight size={32} strokeWidth={2} />
                             </div>
                           )}
                         </React.Fragment>

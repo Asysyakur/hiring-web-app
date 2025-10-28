@@ -14,6 +14,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { fetchJobsAdmin } from "@/features/jobSliceAdmin";
 import type { RootState, AppDispatch } from "@/store";
+import { Search } from "lucide-react";
 
 const AdminJobListPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,22 +49,9 @@ const AdminJobListPage: React.FC = () => {
               <button
                 type="button"
                 aria-label="Search"
-                className="absolute right-2 mt-1 p-1 text-primary hover:text-primaryDark transition"
+                className="absolute right-2 mt-2 p-1 text-primary hover:text-primaryDark transition"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M21 21l-4.35-4.35m1.35-5.65A7 7 0 1 1 5 9a7 7 0 0 1 12.99 1z"
-                  />
-                </svg>
+                <Search strokeWidth={3} />
               </button>
             </div>
 
