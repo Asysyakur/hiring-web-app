@@ -247,7 +247,9 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
       try {
         const rect = videoRef.current.getBoundingClientRect();
         if (rect.width > 0) {
-          desiredWidth = Math.round(rect.width * (window.devicePixelRatio || 1));
+          desiredWidth = Math.round(
+            rect.width * (window.devicePixelRatio || 1)
+          );
           desiredHeight = Math.round((desiredWidth * 9) / 16);
         } else {
           // fallback to window width for smaller devices
@@ -300,21 +302,16 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
     const video = videoRef.current;
     if (!video) return;
 
-    // Use the actual displayed size for the capture to keep responsiveness
-    const rect = video.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    const width =
-      Math.round(rect.width * dpr) || video.videoWidth || 1280;
-    const height =
-      Math.round(rect.height * dpr) || video.videoHeight || Math.round((width * 9) / 16);
-
     const canvas = document.createElement("canvas");
+    const width = video.videoWidth;
+    const height = video.videoHeight;
     canvas.width = width;
     canvas.height = height;
+
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // mirror capture to match preview
+    // mirror agar hasil sesuai tampilan preview
     ctx.translate(width, 0);
     ctx.scale(-1, 1);
     ctx.drawImage(video, 0, 0, width, height);
@@ -384,12 +381,10 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
             </div>
 
             <div
-              className="w-full bg-black flex items-center justify-center relative mx-auto"
+              className="relative w-full bg-black flex items-center justify-center mx-auto overflow-hidden rounded-lg"
               style={{
-                aspectRatio: "16/9",
+                height: "auto",
                 maxHeight: "calc(100vh - 220px)",
-                borderRadius: 8,
-                overflow: "hidden",
               }}
             >
               {isCaptured ? (
@@ -413,17 +408,15 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
                   )}
                   <video
                     ref={videoRef}
-                    className="w-full h-full object-cover"
+                    className="w-full h-auto object-contain"
                     playsInline
                     muted
                     autoPlay
-                    // mirror for user-facing camera preview
                     style={{ transform: "scaleX(-1)" }}
                   />
-                  {/* overlay canvas draws landmarks and numbers */}
                   <canvas
                     ref={canvasRef}
-                    className="absolute inset-0 w-full h-full pointer-events-none"
+                    className="absolute inset-0 w-full h-full object-contain pointer-events-none"
                     style={{ transform: "scaleX(-1)" }}
                   />
                 </>
@@ -436,10 +429,14 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
                 below. The system will automatically capture the image once the
                 final pose is detected.
               </p>
-              <div className="flex flex-col items-center gap-4">
+              <div className="flex flex-col items-center gap-2 md:gap-4">
                 {isCaptured ? (
                   <div className="mt-4 flex flex-col justify-center sm:flex-row items-center gap-3 w-full">
-                    <Button onClick={handleRetake} label="Retake" className="w-full sm:w-auto" />
+                    <Button
+                      onClick={handleRetake}
+                      label="Retake"
+                      className="w-full sm:w-auto"
+                    />
                     <Button
                       onClick={handleSubmit}
                       className="ml-0 sm:ml-4 w-full sm:w-auto"
@@ -447,10 +444,12 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
                     />
                   </div>
                 ) : (
-                  <div className="flex flex-wrap justify-center items-center gap-4">
-                    {[{ img: Hand1, label: "Pose 1" },
+                  <div className="flex flex-wrap justify-center items-center gap-1 md:gap-4">
+                    {[
+                      { img: Hand1, label: "Pose 1" },
                       { img: Hand2, label: "Pose 2" },
-                      { img: Hand3, label: "Pose 3" }].map((p, i, arr) => {
+                      { img: Hand3, label: "Pose 3" },
+                    ].map((p, i, arr) => {
                       const isCurrent = step === i;
                       const isDone = step > i;
                       // compute progress from stableCountRef when current step is being held
@@ -465,7 +464,7 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
                       return (
                         <React.Fragment key={i}>
                           <div
-                            className={`flex flex-col items-center p-2 rounded-md w-20 sm:w-24 ${
+                            className={`flex flex-col items-center p-2 rounded-md w-16 sm:w-24 ${
                               isDone
                                 ? "bg-white border-2 border-success shadow-sm"
                                 : isCurrent

@@ -102,6 +102,11 @@ body {
     --muted-foreground: 0 0% 70%;
   }
 }
+@media (max-width: 640px) {
+  video, canvas {
+    object-fit: cover !important;
+  }
+}
 
 @layer base {
   * {
