@@ -45,9 +45,7 @@ const AdminJobListPage: React.FC = () => {
       const desc = (job.description ?? "").toString().toLowerCase();
       const location = (job.location ?? "").toString().toLowerCase();
       return (
-        name.includes(term) ||
-        desc.includes(term) ||
-        location.includes(term)
+        name.includes(term) || desc.includes(term) || location.includes(term)
       );
     });
   }, [jobs, searchTerm]);
@@ -160,8 +158,18 @@ const AdminJobListPage: React.FC = () => {
                       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                         <div className="space-y-2 w-full md:w-auto">
                           <div className="flex flex-wrap gap-3 items-center mb-1">
-                            <div className="text-success bg-success-foreground bg-opacity-5 border border-success w-fit font-bold px-3 py-1 rounded-lg text-xs sm:text-sm">
-                              Active
+                            <div
+                              className={`w-fit font-bold px-3 py-1 rounded-lg text-xs sm:text-sm border ${
+                                job.status === "Active"
+                                  ? "text-success border-success bg-success/5"
+                                  : job.status === "Inactive"
+                                  ? "text-destructive border-destructive bg-destructive/5"
+                                  : job.status === "Draft"
+                                  ? "text-secondary border-secondary bg-secondary/10"
+                                  : "text-muted-foreground border-muted-foreground bg-muted-foreground/10"
+                              }`}
+                            >
+                              {job.status ?? "Unknown Status"}
                             </div>
                             <div className="text-gray-500 border border-gray-300 w-fit font-medium px-3 py-1 rounded-md text-xs sm:text-sm">
                               started on{" "}
