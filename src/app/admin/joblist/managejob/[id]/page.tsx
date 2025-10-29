@@ -36,7 +36,7 @@ const ManageJobPage = () => {
     { id: "phone", label: "PHONE NUMBERS" },
     { id: "dob", label: "DATE OF BIRTH" },
     { id: "domicile", label: "DOMICILE" },
-    { id: "gender", label: "GENDER" },
+    { id: "pronoun", label: "GENDER" },
     { id: "linkedin", label: "LINK LINKEDIN" },
   ]);
 

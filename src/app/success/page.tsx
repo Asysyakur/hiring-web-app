@@ -1,11 +1,13 @@
 import Success from "@/assets/Success.svg";
+import Navbar from "@/components/Navbar";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Image from "next/image";
 
 const SuccessPage: React.FC = () => {
   return (
     <ProtectedRoute>
-      <main className="p-8 flex flex-col w-full items-center justify-center h-screen">
+      <Navbar pageName="Application Successful" pageBefore="Job List" pathBack="candidate/joblist" />
+      <main className="p-8 -mt-20 flex flex-col w-full items-center justify-center h-screen">
         <Image
           src={Success}
           alt="Success"

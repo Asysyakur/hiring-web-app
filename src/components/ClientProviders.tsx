@@ -5,16 +5,16 @@ import { Provider } from "react-redux";
 import { store } from "@/store";
 import { SessionContextProvider } from "@supabase/auth-helpers-react";
 import { supabase } from "@/lib/supabase";
-import { AuthProvider } from "@/context/AuthContext"; // <--- Tambahkan ini
+import { AuthProvider } from "@/context/AuthContext";
 
 export const ClientProviders = ({ children }: { children: ReactNode }) => {
   return (
-    <Provider store={store}>
-      <SessionContextProvider supabaseClient={supabase}>
-        <AuthProvider> {/* <--- Bungkus di sini */}
+    <SessionContextProvider supabaseClient={supabase}>
+      <AuthProvider>
+        <Provider store={store}>
           {children}
-        </AuthProvider>
-      </SessionContextProvider>
-    </Provider>
+        </Provider>
+      </AuthProvider>
+    </SessionContextProvider>
   );
 };

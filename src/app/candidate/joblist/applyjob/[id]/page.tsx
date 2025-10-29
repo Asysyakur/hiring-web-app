@@ -29,11 +29,14 @@ const ApplyJob: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const id = params?.id as string;
 
-  const { user, candidate, company } = useAuth();
+  const { user, candidate } = useAuth();
   const { job, applicationData, loading, error } = useSelector(
     (state: RootState) => state.jobApplications
   );
-
+  const { appliedJobs } = useSelector(
+    (state: RootState) => state.candidateJobs
+  );
+  console.log("Applied Jobs:", appliedJobs);
   // 🔹 Daftar opsi untuk SelectField
   const domiciles = [
     "Jakarta",
@@ -57,6 +60,13 @@ const ApplyJob: React.FC = () => {
     "email",
     "linkedin",
   ];
+
+  useEffect(() => {
+    if (appliedJobs.find((appliedJob) => appliedJob === id)) {
+      toast.error("You have already applied for this job.");
+      router.push("/candidate/joblist");
+    }
+  }, []);
 
   // 🟩 Ambil detail job
   useEffect(() => {
@@ -100,7 +110,8 @@ const ApplyJob: React.FC = () => {
         if (value === "mandatory") {
           switch (key) {
             case "fullname":
-              if (!payload.fullName) newErrors.fullName = "Full name is required";
+              if (!payload.fullName)
+                newErrors.fullName = "Full name is required";
               break;
             case "dob":
               if (!payload.dob) newErrors.dob = "Date of birth is required";
@@ -110,7 +121,8 @@ const ApplyJob: React.FC = () => {
               if (!payload.pronoun) newErrors.pronoun = "Pronoun is required";
               break;
             case "domicile":
-              if (!payload.domicile) newErrors.domicile = "Domicile is required";
+              if (!payload.domicile)
+                newErrors.domicile = "Domicile is required";
               break;
             case "phone":
               if (!payload.phone) newErrors.phone = "Phone number is required";
@@ -119,10 +131,12 @@ const ApplyJob: React.FC = () => {
               if (!payload.email) newErrors.email = "Email is required";
               break;
             case "linkedin":
-              if (!payload.linkedin) newErrors.linkedin = "LinkedIn profile is required";
+              if (!payload.linkedin)
+                newErrors.linkedin = "LinkedIn profile is required";
               break;
             case "photo":
-              if (!payload.profile_photo) newErrors.profile_photo = "Profile photo is required";
+              if (!payload.profile_photo)
+                newErrors.profile_photo = "Profile photo is required";
               break;
           }
         }
@@ -355,7 +369,8 @@ const ApplyJob: React.FC = () => {
                           <Label>Profile Photo </Label>
                           <img
                             src={
-                              applicationData?.profile_photo || DefaultAvatar.src
+                              applicationData?.profile_photo ||
+                              DefaultAvatar.src
                             }
                             alt="Profile preview"
                             className="w-32 h-32 rounded-full border-2 border-border object-cover"

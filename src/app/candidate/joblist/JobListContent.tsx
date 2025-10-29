@@ -11,7 +11,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { MapPin, Banknote, ArrowLeft } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
-import { fetchAppliedJobs, fetchCandidateJobs } from "@/features/jobSliceCandidate";
+import {
+  fetchAppliedJobs,
+  fetchCandidateJobs,
+} from "@/features/jobSliceCandidate";
 
 const JobListContent: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -103,10 +106,15 @@ const JobListContent: React.FC = () => {
       <main className="p-4 md:p-8 flex w-full items-center justify-center">
         <section className="w-full px-4 md:px-16">
           {loading ? (
-            <div className="mt-8 space-y-4 flex flex-col w-full">
-              {[1, 2, 3].map((key) => (
-                <CardSkeleton key={key} />
-              ))}
+            <div className="-mt-2 space-y-4 grid grid-cols-1 md:grid-cols-8 gap-8 w-full">
+              <div className="mt-4 space-y-4 flex flex-col md:col-span-3 w-full">
+                {[1, 2, 3].map((key) => (
+                  <CardSkeleton key={key} />
+                ))}
+              </div>
+              <div className=" hidden md:block md:col-span-5">
+                <CardSkeleton />
+              </div>
             </div>
           ) : candidateJobs.length === 0 ? (
             <div className="mt-8 w-full min-h-[220px] md:min-h-[360px] flex flex-col items-center justify-center p-6 md:p-12 lg:p-44 text-center space-y-4">
