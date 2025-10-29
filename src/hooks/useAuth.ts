@@ -30,7 +30,7 @@ interface Candidate {
   [key: string]: any;
 }
 
-// Cache di memory biar nggak panggil Supabase berkali-kali
+// Cache session di memory
 let cachedSession: any = null;
 
 const STORAGE_KEYS = {
@@ -68,58 +68,75 @@ function loadFromStorage<T>(key: string): T | null {
 
 function clearAuthStorage() {
   try {
-    Object.values(STORAGE_KEYS).forEach((key) => localStorage.removeItem(key));
+    Object.values(STORAGE_KEYS).forEach((key) =>
+      localStorage.removeItem(key)
+    );
   } catch {}
 }
 
 export const useAuth = () => {
   const [user, setUser] = useState<Profile | null>(() =>
-    typeof window !== "undefined" ? loadFromStorage<Profile>(STORAGE_KEYS.profile) : null
+    typeof window !== "undefined"
+      ? loadFromStorage<Profile>(STORAGE_KEYS.profile)
+      : null
   );
   const [company, setCompany] = useState<Company | null>(() =>
-    typeof window !== "undefined" ? loadFromStorage<Company>(STORAGE_KEYS.company) : null
+    typeof window !== "undefined"
+      ? loadFromStorage<Company>(STORAGE_KEYS.company)
+      : null
   );
   const [candidate, setCandidate] = useState<Candidate | null>(() =>
-    typeof window !== "undefined" ? loadFromStorage<Candidate>(STORAGE_KEYS.candidate) : null
+    typeof window !== "undefined"
+      ? loadFromStorage<Candidate>(STORAGE_KEYS.candidate)
+      : null
   );
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
+
     const getUserData = async () => {
       try {
         setLoading(true);
 
-        let sessionUser = cachedSession;
-        if (!cachedSession) {
-          const { data: sessionData, error } = await supabase.auth.getSession();
-          if (error) throw error;
-          sessionUser = sessionData?.session?.user;
-          cachedSession = sessionUser;
-        }
+        // Paksa refresh session di setiap reload / tab kembali
+        cachedSession = null;
+
+        const { data: sessionData, error } = await supabase.auth.getSession();
+        if (error) throw error;
+
+        const sessionUser = sessionData?.session?.user;
+        cachedSession = sessionUser;
 
         if (!sessionUser) {
           clearAuthStorage();
-          setUser(null);
-          setCompany(null);
-          setCandidate(null);
-          setLoading(false);
+          if (active) {
+            setUser(null);
+            setCompany(null);
+            setCandidate(null);
+            setLoading(false);
+          }
           return;
         }
 
-        // Jika sudah ada di localStorage dan cocok
+        // Cek cache di localStorage
         const storedProfile = loadFromStorage<Profile>(STORAGE_KEYS.profile);
         const storedCompany = loadFromStorage<Company>(STORAGE_KEYS.company);
-        const storedCandidate = loadFromStorage<Candidate>(STORAGE_KEYS.candidate);
+        const storedCandidate = loadFromStorage<Candidate>(
+          STORAGE_KEYS.candidate
+        );
 
         if (storedProfile?.id === sessionUser.id) {
-          setUser(storedProfile);
-          setCompany(storedCompany);
-          setCandidate(storedCandidate);
-          setLoading(false);
+          if (active) {
+            setUser(storedProfile);
+            setCompany(storedCompany);
+            setCandidate(storedCandidate);
+            setLoading(false);
+          }
           return;
         }
 
-        // Ambil dari Supabase jika belum ada di cache
+        // Ambil data terbaru dari Supabase
         const { data: profileData } = await supabase
           .from("profiles")
           .select("*")
@@ -145,73 +162,95 @@ export const useAuth = () => {
           email: sessionUser.email ?? undefined,
         };
 
-        setUser(resolvedProfile);
-        setCompany(companyData ?? null);
-        setCandidate(candidateData ?? null);
+        if (active) {
+          setUser(resolvedProfile);
+          setCompany(companyData ?? null);
+          setCandidate(candidateData ?? null);
+        }
 
         saveToStorage(STORAGE_KEYS.profile, resolvedProfile);
         saveToStorage(STORAGE_KEYS.company, companyData ?? null);
         saveToStorage(STORAGE_KEYS.candidate, candidateData ?? null);
       } catch (err) {
         console.error("Auth error:", err);
-        setUser(null);
-        setCompany(null);
-        setCandidate(null);
-        clearAuthStorage();
+        if (active) {
+          setUser(null);
+          setCompany(null);
+          setCandidate(null);
+          clearAuthStorage();
+        }
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
+    // Jalankan di awal
     getUserData();
 
     // Listener auth Supabase (login/logout)
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        cachedSession = session.user;
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .maybeSingle();
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (!active) return;
 
-        const { data: companyData } = await supabase
-          .from("company_attributes")
-          .select("*")
-          .eq("user_id", session.user.id)
-          .maybeSingle();
+        if (session?.user) {
+          cachedSession = session.user;
 
-        const { data: candidateData } = await supabase
-          .from("candidate_attributes")
-          .select("*")
-          .eq("user_id", session.user.id)
-          .maybeSingle();
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", session.user.id)
+            .maybeSingle();
 
-        const resolvedProfile: Profile = {
-          ...(profileData ?? {}),
-          id: profileData?.id ?? session.user.id,
-          full_name: profileData?.full_name ?? "",
-          email: session.user.email ?? undefined,
-        };
+          const { data: companyData } = await supabase
+            .from("company_attributes")
+            .select("*")
+            .eq("user_id", session.user.id)
+            .maybeSingle();
 
-        setUser(resolvedProfile);
-        setCompany(companyData ?? null);
-        setCandidate(candidateData ?? null);
+          const { data: candidateData } = await supabase
+            .from("candidate_attributes")
+            .select("*")
+            .eq("user_id", session.user.id)
+            .maybeSingle();
 
-        saveToStorage(STORAGE_KEYS.profile, resolvedProfile);
-        saveToStorage(STORAGE_KEYS.company, companyData ?? null);
-        saveToStorage(STORAGE_KEYS.candidate, candidateData ?? null);
-      } else {
-        cachedSession = null;
-        setUser(null);
-        setCompany(null);
-        setCandidate(null);
-        clearAuthStorage();
+          const resolvedProfile: Profile = {
+            ...(profileData ?? {}),
+            id: profileData?.id ?? session.user.id,
+            full_name: profileData?.full_name ?? "",
+            email: session.user.email ?? undefined,
+          };
+
+          setUser(resolvedProfile);
+          setCompany(companyData ?? null);
+          setCandidate(candidateData ?? null);
+
+          saveToStorage(STORAGE_KEYS.profile, resolvedProfile);
+          saveToStorage(STORAGE_KEYS.company, companyData ?? null);
+          saveToStorage(STORAGE_KEYS.candidate, candidateData ?? null);
+        } else {
+          cachedSession = null;
+          setUser(null);
+          setCompany(null);
+          setCandidate(null);
+          clearAuthStorage();
+        }
       }
-    });
+    );
+
+    // 🔁 Fetch ulang saat tab aktif lagi
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        cachedSession = null;
+        getUserData();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
+      active = false;
       listener?.subscription?.unsubscribe();
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, []);
 

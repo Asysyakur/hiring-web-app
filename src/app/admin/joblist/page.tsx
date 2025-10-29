@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Navbar from "@/components/Navbar";
 import Button from "@/components/Form/Button";
@@ -18,6 +18,7 @@ import { Search } from "lucide-react";
 
 const AdminJobListPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const dispatch = useDispatch<AppDispatch>();
   const { jobs, loading } = useSelector((state: RootState) => state.adminJobs);
   const { company, user, loading: authLoading } = useAuth();
@@ -35,6 +36,21 @@ const AdminJobListPage: React.FC = () => {
   const handleChangePage = (jobId: string) => {
     router.push(`/admin/joblist/managejob/${jobId}`);
   };
+
+  const filteredJobs = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return jobs;
+    return jobs.filter((job: any) => {
+      const name = (job.name ?? "").toString().toLowerCase();
+      const desc = (job.description ?? "").toString().toLowerCase();
+      const location = (job.location ?? "").toString().toLowerCase();
+      return (
+        name.includes(term) ||
+        desc.includes(term) ||
+        location.includes(term)
+      );
+    });
+  }, [jobs, searchTerm]);
 
   return (
     <ProtectedRoute>
@@ -73,11 +89,19 @@ const AdminJobListPage: React.FC = () => {
               <input
                 type="text"
                 placeholder="Search by job details"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setSearchTerm("");
+                }}
                 className="w-full border border-input rounded-lg p-3 sm:p-3.5 pr-12 text-sm sm:text-base bg-primaryBg placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition"
               />
               <button
                 type="button"
                 aria-label="Search"
+                onClick={() => {
+                  /* optional: focus or trigger search; client-side filters instantly */
+                }}
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 text-primary hover:text-primaryDark rounded-md transition"
               >
                 <Search strokeWidth={3} size={18} />
@@ -110,10 +134,25 @@ const AdminJobListPage: React.FC = () => {
                   onClick={() => setIsModalOpen(true)}
                 />
               </div>
+            ) : filteredJobs.length === 0 ? (
+              <div className="mt-6 sm:mt-8 w-full min-h-[220px] md:min-h-[360px] flex flex-col items-center justify-center p-6 md:p-12 lg:p-24 text-center space-y-4">
+                <h2 className="text-base sm:text-lg md:text-2xl font-semibold">
+                  No results found
+                </h2>
+                <p className="text-xs sm:text-sm md:text-base text-secondaryText max-w-xl px-4 pb-2">
+                  Try a different keyword or clear the search.
+                </p>
+                <Button
+                  label="Clear search"
+                  variant="secondary"
+                  className="w-full md:w-auto text-base sm:text-lg"
+                  onClick={() => setSearchTerm("")}
+                />
+              </div>
             ) : (
               <div className="mt-6 sm:mt-8">
                 <ul className="space-y-4">
-                  {jobs.map((job: any) => (
+                  {filteredJobs.map((job: any) => (
                     <li
                       key={job.id ?? JSON.stringify(job)}
                       className="bg-card rounded-lg p-4 sm:p-6 shadow-lg"

@@ -58,7 +58,7 @@ const JobListContent: React.FC = () => {
       setSelectedJob(candidateJobs[0]);
     }
   }, [candidateJobs, selectedJob, isMobile]);
-  console.log("Selected job:", selectedJob);
+
   useEffect(() => {
     const jobId = searchParams?.get?.("job");
     if (jobId && candidateJobs.length > 0) {
@@ -132,7 +132,7 @@ const JobListContent: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-8 gap-8 w-full">
-              <div className="md:col-span-3">
+              <div className="md:col-span-3 p-2  overflow-auto max-h-screen md:max-h-[85vh]">
                 <ul className="space-y-4">
                   {candidateJobs.map((job: any) => {
                     const isSelected = selectedJob?.id === job.id && !isMobile;

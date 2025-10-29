@@ -36,7 +36,7 @@ const ApplyJob: React.FC = () => {
   const { appliedJobs } = useSelector(
     (state: RootState) => state.candidateJobs
   );
-  console.log("Applied Jobs:", appliedJobs);
+
   // 🔹 Daftar opsi untuk SelectField
   const domiciles = [
     "Jakarta",
