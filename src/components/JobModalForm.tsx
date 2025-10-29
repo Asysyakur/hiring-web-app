@@ -5,14 +5,19 @@ import { supabase } from "@/lib/supabase";
 import Input from "./Form/Input";
 import TextArea from "./Form/TextArea";
 import SelectField from "./Form/Select";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/store";
+import { fetchJobsAdmin } from "@/features/jobSliceAdmin"; // pastikan path ini benar
+import { toast } from "sonner";
+import { CircleCheck } from "lucide-react";
 
 interface JobFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   companyId: string;
+  userId: string;
 }
 
-// compact radio group component
 const RadioOptions: React.FC<{
   name: string;
   defaultValue?: string;
@@ -44,8 +49,6 @@ const RadioOptions: React.FC<{
                 readOnly
                 disabled={!isMandatory}
                 className="sr-only peer"
-                aria-checked={isMandatory}
-                aria-disabled={!isMandatory}
               />
               <span
                 className={`inline-flex items-center px-3 py-1.5 border rounded-full transition ${
@@ -53,11 +56,6 @@ const RadioOptions: React.FC<{
                     ? "border-primary text-primary bg-primary/5"
                     : "border-gray-200 text-gray-400 bg-gray-200"
                 }`}
-                title={
-                  isMandatory
-                    ? "This field is mandatory"
-                    : "Disabled when field is mandatory"
-                }
               >
                 {opt.label}
               </span>
@@ -78,13 +76,11 @@ const RadioOptions: React.FC<{
             value={opt.value}
             defaultChecked={opt.value === defaultValue}
             className="sr-only peer"
-            aria-checked={opt.value === defaultValue}
           />
           <span
             className="inline-flex items-center px-3 py-1.5 border rounded-full transition
                        border-gray-300 text-gray-700
-                       peer-checked:border-primary peer-checked:text-primary
-                       peer-focus-visible:ring-2 peer-focus-visible:ring-primary/30"
+                       peer-checked:border-primary peer-checked:text-primary"
           >
             {opt.label}
           </span>
@@ -98,22 +94,21 @@ const JobFormModal: React.FC<JobFormModalProps> = ({
   isOpen,
   onClose,
   companyId,
+  userId,
 }) => {
+  const dispatch = useDispatch<AppDispatch>();
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [submitting, setSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
-  // close only when clicking the backdrop (outside modal content)
   const handleBackdropMouseDown = (e: React.MouseEvent<HTMLElement>) => {
     if (e.target === e.currentTarget) onClose();
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (submitting) return; // prevent duplicate submits
-
-    // mark as submitting early to avoid duplicate work while validating
+    if (submitting) return;
     setSubmitting(true);
 
     const form = e.currentTarget;
@@ -121,11 +116,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({
 
     const getString = (key: string) => {
       const v = fd.get(key);
-      if (v === null) return "";
-      if (typeof v === "string") return v.trim();
-      // ignore file objects or other non-string values
-      if (v instanceof File) return "";
-      return String(v).trim();
+      return typeof v === "string" ? v.trim() : "";
     };
 
     const jobName = getString("jobName");
@@ -136,23 +127,18 @@ const JobFormModal: React.FC<JobFormModalProps> = ({
     const maxSalary = getString("jobSalaryMax");
 
     const newErrors: Record<string, string> = {};
-
     if (!jobName) newErrors.jobName = "Job name is required";
     if (!jobType) newErrors.jobType = "Job type is required";
     if (!jobDescription)
       newErrors.jobDescription = "Job description is required";
     if (!candidatesNeeded)
       newErrors.candidatesNeeded = "Number of candidates is required";
-
     setErrors(newErrors);
-
-    if (Object.keys(newErrors).length !== 0) {
-      // stop submitting if validation failed
+    if (Object.keys(newErrors).length > 0) {
       setSubmitting(false);
       return;
     }
 
-    // prepare payload
     const payload: any = {
       name: jobName,
       type: jobType,
@@ -172,35 +158,33 @@ const JobFormModal: React.FC<JobFormModalProps> = ({
       },
     };
 
-    // only include salary fields when provided and valid (> 0)
     const minNum = minSalary ? Number(minSalary) : 0;
     const maxNum = maxSalary ? Number(maxSalary) : 0;
-    if (Number.isFinite(minNum) && minNum > 0) payload.min_sal = minNum;
-    if (Number.isFinite(maxNum) && maxNum > 0) payload.max_sal = maxNum;
+    if (minNum > 0) payload.min_sal = minNum;
+    if (maxNum > 0) payload.max_sal = maxNum;
 
     try {
-      const res = await addJob(payload);
-      if (res.error) {
-        // show a simple error message
-        setErrors({ form: "Failed to create job. Try again." });
-        console.error("addJob error", res.error);
-      } else {
-        // success
-        onClose();
-      }
+      const { data, error } = await supabase
+        .from("jobs")
+        .insert([payload])
+        .select();
+
+      if (error) throw error;
+
+      // ✅ Re-fetch data Redux
+      await dispatch(fetchJobsAdmin(userId));
+      
+      toast.success("Job vacancy successfully created", {
+        icon: <CircleCheck className="mr-2" color="#01959F" />,
+        duration: 4000,
+      });
+      onClose();
     } catch (err) {
-      console.error(err);
-      setErrors({ form: "Unexpected error. Try again." });
+      console.error("Error adding job:", err);
     } finally {
       setSubmitting(false);
     }
   };
-
-  async function addJob(job: Record<string, any>) {
-    // insert only the keys present in payload
-    const { data, error } = await supabase.from("jobs").insert([job]).select();
-    return { data, error };
-  }
 
   return (
     <main
@@ -211,7 +195,6 @@ const JobFormModal: React.FC<JobFormModalProps> = ({
         onMouseDown={(e) => e.stopPropagation()}
         className="bg-white rounded-xl w-full md:max-w-7xl relative"
       >
-        {/* header */}
         <header className="flex justify-between items-center p-6 border-b pb-6">
           <h2 className="text-xl font-semibold">Job Opening</h2>
           <button
@@ -222,7 +205,6 @@ const JobFormModal: React.FC<JobFormModalProps> = ({
           </button>
         </header>
 
-        {/* form */}
         <form onSubmit={handleSubmit}>
           <section className="space-y-4 p-6 overflow-y-auto max-h-[70vh]">
             <Input
@@ -394,9 +376,12 @@ const JobFormModal: React.FC<JobFormModalProps> = ({
           <div className="flex justify-end space-x-4 p-6 border-t">
             <button
               type="submit"
-              className="bg-primary text-white px-4 py-2 rounded-lg"
+              disabled={submitting}
+              className={`bg-primary text-white px-4 py-2 rounded-lg ${
+                submitting ? "opacity-70 cursor-not-allowed" : ""
+              }`}
             >
-              Publish Job
+              {submitting ? "Publishing..." : "Publish Job"}
             </button>
           </div>
         </form>

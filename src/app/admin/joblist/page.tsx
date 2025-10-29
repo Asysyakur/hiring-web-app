@@ -20,12 +20,12 @@ const AdminJobListPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const { jobs, loading } = useSelector((state: RootState) => state.adminJobs);
-  const { company } = useAuth();
+  const { company, user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
-      await dispatch(fetchJobsAdmin());
+      await dispatch(fetchJobsAdmin(user?.id || ""));
     };
     fetchData();
   }, []);
@@ -176,6 +176,7 @@ const AdminJobListPage: React.FC = () => {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           companyId={company?.id || ""}
+          userId={user?.id || ""}
         />
       </div>
     </ProtectedRoute>

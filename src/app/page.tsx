@@ -13,9 +13,9 @@ export default function HomePage() {
     "admin" | "candidate" | null
   >(null);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!selectedRole) return;
-    dispatch(setRole(selectedRole));
+    await dispatch(setRole(selectedRole));
     router.push(`/${selectedRole}/joblist`);
   };
 
