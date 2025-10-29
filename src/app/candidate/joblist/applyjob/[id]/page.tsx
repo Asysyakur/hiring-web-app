@@ -155,11 +155,11 @@ const ApplyJob: React.FC = () => {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50 text-gray-800">
-        <div className="max-w-3xl mx-auto p-6">
+        <div className="max-w-3xl mx-auto p-0 md:p-6">
           <main className="bg-white shadow-lg border border-border overflow-hidden">
             {/* Header */}
-            <section className="flex items-center justify-between px-10 py-8 bg-background">
-              <div className="flex items-center gap-4">
+            <section className="flex items-center justify-between px-5 py-4 md:px-10 md:py-8 bg-background">
+              <div className="flex items-center gap-2 md:gap-4">
                 <button
                   onClick={() => router.back()}
                   aria-label="Go back"
@@ -167,11 +167,11 @@ const ApplyJob: React.FC = () => {
                 >
                   <ArrowLeft className="p-0.5" strokeWidth={2} />
                 </button>
-                <h1 className="text-lg md:text-xl font-semibold">
+                <h1 className="text-base md:text-xl font-semibold">
                   Apply for {job?.name ?? "Job"} at {job?.title ?? "Rakamin"}
                 </h1>
               </div>
-              <span className="text-sm text-gray-500">
+              <span className="text-xs md:text-sm text-gray-500 text-end">
                 ℹ️ This field required to fill
               </span>
             </section>
@@ -179,9 +179,9 @@ const ApplyJob: React.FC = () => {
             {/* Form */}
             <form
               onSubmit={handleSubmit}
-              className="flex flex-col gap-6 overflow-y-auto max-h-[85vh] w-full"
+              className="flex flex-col gap-6 overflow-y-auto max-h-screen md:max-h-[85vh] w-full"
             >
-              <div className="flex flex-col gap-6 px-16">
+              <div className="flex flex-col gap-4 md:gap-6 px-6 md:px-16">
                 {fieldsOrder.map((key) => {
                   const value = job?.min_profile?.[key];
                   if (!value || value === "off") return null;
@@ -250,7 +250,7 @@ const ApplyJob: React.FC = () => {
                             ].map((p) => (
                               <label
                                 key={p.value}
-                                className="flex items-center gap-2 cursor-pointer"
+                                className="flex items-center gap-2 cursor-pointer text-sm"
                               >
                                 <input
                                   type="radio"

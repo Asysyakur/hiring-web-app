@@ -193,7 +193,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({
     >
       <div
         onMouseDown={(e) => e.stopPropagation()}
-        className="bg-white rounded-xl w-full md:max-w-7xl relative"
+        className="bg-white md:rounded-xl w-full h-screen md:max-w-7xl relative"
       >
         <header className="flex justify-between items-center p-6 border-b pb-6">
           <h2 className="text-xl font-semibold">Job Opening</h2>
@@ -206,7 +206,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({
         </header>
 
         <form onSubmit={handleSubmit}>
-          <section className="space-y-4 p-6 overflow-y-auto max-h-[70vh]">
+          <section className="space-y-4 p-6 overflow-y-auto max-h-[82vh] md:max-h-[70vh]">
             <Input
               label="Job Name"
               name="jobName"

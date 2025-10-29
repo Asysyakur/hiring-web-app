@@ -7,55 +7,119 @@ import Logo from "@/assets/Logo.svg";
 import EmptyState from "@/assets/Empty State.svg";
 import Image from "next/image";
 import CardSkeleton from "@/components/CardSkeleton";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { MapPin, Banknote } from "lucide-react";
+import { MapPin, Banknote, ArrowLeft } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
-import { fetchCandidateJobs } from "@/features/jobSliceCandidate"; // pastikan slice-nya ada
+import { fetchCandidateJobs } from "@/features/jobSliceCandidate";
 
 const JobListPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const { jobs: candidateJobs, loading } = useSelector(
     (state: RootState) => state.candidateJobs
   );
 
   const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  // detect mobile
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 767px)");
+    const handler = (e: MediaQueryListEvent | MediaQueryList) =>
+      setIsMobile("matches" in e ? e.matches : false);
+
+    // set initial state
+    handler(mq as any);
+
+    // prefer modern addEventListener/removeEventListener, fallback to deprecated addListener/removeListener when present
+    if ("addEventListener" in mq && typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", handler as any);
+      return () => mq.removeEventListener("change", handler as any);
+    } else if ("addListener" in mq && typeof (mq as any).addListener === "function") {
+      // fallback for older browsers
+      (mq as any).addListener(handler);
+      return () => (mq as any).removeListener(handler);
+    }
+
+    // no-op cleanup if neither method exists
+    return;
+  }, []);
 
   useEffect(() => {
-    // Hanya fetch jika belum ada data di store
     if (candidateJobs.length === 0) {
       dispatch(fetchCandidateJobs());
     }
   }, [dispatch, candidateJobs.length]);
 
+  // sync selectedJob with list when available
   useEffect(() => {
-    if (candidateJobs.length > 0 && !selectedJob) {
+    // if no selected job yet, pick first (desktop)
+    if (!selectedJob && candidateJobs.length > 0 && !isMobile) {
       setSelectedJob(candidateJobs[0]);
     }
-  }, [candidateJobs, selectedJob]);
+  }, [candidateJobs, selectedJob, isMobile]);
+
+  // open modal when query param present (mobile)
+  useEffect(() => {
+    const jobId = searchParams?.get?.("job");
+    if (jobId && candidateJobs.length > 0) {
+      const job = candidateJobs.find((j: any) => String(j.id) === String(jobId));
+      if (job) {
+        setSelectedJob(job);
+      }
+    }
+    // when job param removed, clear selected on mobile
+    if (!jobId && isMobile) {
+      setSelectedJob(null);
+    }
+  }, [searchParams, candidateJobs, isMobile]);
 
   const handleChangePage = (jobId: string) => {
     router.push(`/candidate/joblist/applyjob/${jobId}`);
   };
+
+  const handleJobClick = (job: any) => {
+    if (isMobile) {
+      // push query param so browser back closes modal
+      const path = `${window.location.pathname}?job=${job.id}`;
+      router.push(path);
+      // selectedJob will be set by effect that reads searchParams
+    } else {
+      setSelectedJob(job);
+    }
+  };
+
+  const closeModal = () => {
+    // use history back to remove the query param (if present)
+    // if there's no history entry to go back to, fallback to removing param via push to base path
+    try {
+      router.back();
+    } catch {
+      router.push(window.location.pathname);
+    }
+  };
+
+  const jobIdInParams = !!searchParams?.get?.("job");
+  const showMobileModal = isMobile && jobIdInParams && !!selectedJob;
 
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-primaryBg transition-colors duration-500">
         <Navbar pageName="Job List" />
         <main className="p-8 flex w-full items-center justify-center">
-          <section className="w-full px-16">
+          <section className="w-full px-4 md:px-16">
             {loading ? (
-              // Skeleton loading
               <div className="mt-8 space-y-4 flex flex-col w-full">
                 {[1, 2, 3].map((key) => (
                   <CardSkeleton key={key} />
                 ))}
               </div>
             ) : candidateJobs.length === 0 ? (
-              // Empty State
               <div className="mt-8 w-full min-h-[220px] md:min-h-[360px] flex flex-col items-center justify-center p-6 md:p-12 lg:p-44 text-center space-y-4">
                 <Image
                   src={EmptyState}
@@ -70,12 +134,12 @@ const JobListPage: React.FC = () => {
                 </p>
               </div>
             ) : (
-              // Job List
-              <div className="grid grid-cols-8 gap-8 px-16 w-full">
-                <div className="col-span-3">
+              // grid: on mobile show list only; on md+ show list + detail
+              <div className="grid grid-cols-1 md:grid-cols-8 gap-8 w-full">
+                <div className="md:col-span-3">
                   <ul className="space-y-4">
                     {candidateJobs.map((job: any) => {
-                      const isSelected = selectedJob?.id === job.id;
+                      const isSelected = selectedJob?.id === job.id && !isMobile;
                       return (
                         <li
                           key={job.id}
@@ -84,7 +148,7 @@ const JobListPage: React.FC = () => {
                               ? "ring-2 ring-primary bg-[#F7FEFF]"
                               : "hover:shadow-xl"
                           }`}
-                          onClick={() => setSelectedJob(job)}
+                          onClick={() => handleJobClick(job)}
                         >
                           <div className="flex flex-col items-start gap-2">
                             <div className="flex gap-3 mb-1 items-center">
@@ -137,8 +201,8 @@ const JobListPage: React.FC = () => {
                   </ul>
                 </div>
 
-                {/* Detail Job */}
-                <div className="col-span-5">
+                {/* Detail Job (desktop only) */}
+                <div className="hidden md:block md:col-span-5">
                   {selectedJob ? (
                     <div className="bg-card rounded-xl p-6 min-h-[800px] border-2">
                       <div className="w-full space-y-4">
@@ -185,6 +249,84 @@ const JobListPage: React.FC = () => {
                     </div>
                   )}
                 </div>
+
+                {/* Mobile modal */}
+                {showMobileModal && (
+                  <div className="fixed inset-0 z-50 flex items-start justify-center md:hidden">
+                    {/* backdrop */}
+                    <div
+                      className="absolute inset-0 bg-black/40"
+                      onClick={closeModal}
+                    />
+                    <div className="relative w-full max-w-xl mt-20 mx-4 bg-card rounded-xl p-4 overflow-auto max-h-[80vh] border-2">
+                      <div className="flex items-center justify-between mb-3">
+                        <button
+                          onClick={closeModal}
+                          className="flex items-center gap-2 text-sm text-gray-500"
+                        >
+                          <ArrowLeft className="w-4 h-4" /> Back
+                        </button>
+                        <Button
+                          label="Apply"
+                          variant="secondary"
+                          onClick={() => selectedJob && handleChangePage(selectedJob.id)}
+                        />
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="flex gap-4 items-center">
+                          <Image
+                            src={selectedJob.company?.logo ?? Logo}
+                            alt={selectedJob.company?.name ?? "Company Logo"}
+                            width={56}
+                            height={56}
+                            className="object-contain rounded"
+                          />
+                          <div>
+                            <h3 className="text-lg font-semibold">
+                              {selectedJob.name}
+                            </h3>
+                            <div className="text-sm text-gray-500">
+                              {selectedJob.company?.name}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="text-sm text-secondaryText">
+                          <p className="whitespace-pre-line">
+                            {selectedJob.desc ?? "No description provided."}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-3 text-sm text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-4 h-4" />
+                            {selectedJob.company?.location ?? "Location not set"}
+                          </div>
+                          {((selectedJob.min_sal ?? 0) > 0 ||
+                            (selectedJob.max_sal ?? 0) > 0) && (
+                            <div className="flex items-center gap-1">
+                              <Banknote className="w-4 h-4" />
+                              <div>
+                                {(selectedJob.min_sal ?? 0) > 0 &&
+                                (selectedJob.max_sal ?? 0) > 0 ? (
+                                  <>
+                                    Rp{selectedJob.min_sal.toLocaleString()} - Rp
+                                    {selectedJob.max_sal.toLocaleString()}
+                                  </>
+                                ) : (selectedJob.min_sal ?? 0) > 0 ? (
+                                  <>Rp{selectedJob.min_sal.toLocaleString()}</>
+                                ) : (
+                                  <>Rp{selectedJob.max_sal?.toLocaleString()}</>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </section>

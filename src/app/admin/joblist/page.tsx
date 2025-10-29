@@ -28,7 +28,7 @@ const AdminJobListPage: React.FC = () => {
       await dispatch(fetchJobsAdmin(user?.id || ""));
     };
     fetchData();
-  }, []);
+  }, [dispatch, user?.id]);
 
   const handleChangePage = (jobId: string) => {
     router.push(`/admin/joblist/managejob/${jobId}`);
@@ -38,64 +38,91 @@ const AdminJobListPage: React.FC = () => {
     <ProtectedRoute>
       <div className="min-h-screen bg-primaryBg transition-colors duration-500">
         <Navbar pageName="Job List" />
-        <main className="p-6 grid grid-cols-1 md:grid-cols-8 gap-8 items-start">
+        <main className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-8 gap-6 md:gap-8 items-start">
+          {/* CreateJob */}
+          <section className="md:col-span-2 rounded-xl shadow p-4 sm:p-6 relative overflow-hidden md:hidden ">
+            <div className="absolute inset-0">
+              <Image
+                src={CreateJobBg}
+                alt="Create job background"
+                fill
+                className="object-cover filter brightness-75"
+              />
+              <div className="absolute inset-0 bg-black/60" />
+            </div>
+
+            <div className="relative z-10 text-white">
+              <h2 className="text-lg sm:text-xl font-semibold mb-2">
+                Recruit the best candidates
+              </h2>
+              <h3 className="font-medium text-sm sm:text-base">
+                Create jobs, invite, and hire with ease
+              </h3>
+              <Button
+                label="Create a new job"
+                variant="primary"
+                className="mt-4 w-full text-base"
+                onClick={() => setIsModalOpen(true)}
+              />
+            </div>
+          </section>
           <section className="md:col-span-6">
             <div className="relative">
               <input
                 type="text"
                 placeholder="Search by job details"
-                className="w-full border border-input rounded-lg p-3 pr-10 bg-primaryBg placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition"
+                className="w-full border border-input rounded-lg p-3 sm:p-3.5 pr-12 text-sm sm:text-base bg-primaryBg placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition"
               />
               <button
                 type="button"
                 aria-label="Search"
-                className="absolute right-2 mt-2 p-1 text-primary hover:text-primaryDark transition"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 text-primary hover:text-primaryDark rounded-md transition"
               >
-                <Search strokeWidth={3} />
+                <Search strokeWidth={3} size={18} />
               </button>
             </div>
 
             {loading ? (
-              <div className="mt-8 space-y-4 flex flex-col w-full">
+              <div className="mt-6 sm:mt-8 space-y-4 flex flex-col w-full">
                 {[1, 2, 3].map((key) => (
                   <CardSkeleton key={key} />
                 ))}
               </div>
             ) : jobs.length === 0 ? (
-              <div className="mt-8 w-full min-h-[220px] md:min-h-[360px] flex flex-col items-center justify-center p-6 md:p-12 lg:p-24 text-center space-y-4">
+              <div className="mt-6 sm:mt-8 w-full min-h-[220px] md:min-h-[360px] flex flex-col items-center justify-center p-6 md:p-12 lg:p-24 text-center space-y-4">
                 <Image
                   src={EmptyState}
                   alt="Empty state"
                   className="w-36 md:w-80 h-auto object-contain mb-2"
                 />
-                <h2 className="text-lg md:text-2xl font-semibold">
+                <h2 className="text-base sm:text-lg md:text-2xl font-semibold">
                   No job openings available
                 </h2>
-                <p className="text-sm md:text-base text-secondaryText max-w-xl px-4 pb-2">
+                <p className="text-xs sm:text-sm md:text-base text-secondaryText max-w-xl px-4 pb-2">
                   Create a job opening now and start the candidate process.
                 </p>
                 <Button
                   label="Create a new job"
                   variant="secondary"
-                  className="w-full md:w-auto text-lg"
+                  className="w-full md:w-auto text-base sm:text-lg"
                   onClick={() => setIsModalOpen(true)}
                 />
               </div>
             ) : (
-              <div className="mt-8">
+              <div className="mt-6 sm:mt-8">
                 <ul className="space-y-4">
                   {jobs.map((job: any) => (
                     <li
                       key={job.id ?? JSON.stringify(job)}
-                      className="bg-card rounded-lg p-8 shadow-lg"
+                      className="bg-card rounded-lg p-4 sm:p-6 shadow-lg"
                     >
-                      <div className="flex justify-between items-end ">
-                        <div className="space-y-2">
-                          <div className="flex gap-4 mb-1">
-                            <div className="text-success bg-success-foreground bg-opacity-5 border border-success w-fit font-bold mb-1 px-4 py-1 rounded-lg">
+                      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                        <div className="space-y-2 w-full md:w-auto">
+                          <div className="flex flex-wrap gap-3 items-center mb-1">
+                            <div className="text-success bg-success-foreground bg-opacity-5 border border-success w-fit font-bold px-3 py-1 rounded-lg text-xs sm:text-sm">
                               Active
                             </div>
-                            <div className="text-gray-500 border border-gray-300 w-fit font-medium mb-1 px-4 py-1 rounded-md">
+                            <div className="text-gray-500 border border-gray-300 w-fit font-medium px-3 py-1 rounded-md text-xs sm:text-sm">
                               started on{" "}
                               {job.created_at
                                 ? new Date(job.created_at).toLocaleDateString(
@@ -109,12 +136,12 @@ const AdminJobListPage: React.FC = () => {
                                 : "Unknown"}
                             </div>
                           </div>
-                          <h3 className="text-xl font-semibold">
+                          <h3 className="text-base sm:text-xl font-semibold break-words">
                             {job.name ?? "Untitled position"}
                           </h3>
                           {((job.min_sal ?? 0) > 0 ||
                             (job.max_sal ?? 0) > 0) && (
-                            <div className="text-gray-500 font-medium">
+                            <div className="text-gray-500 font-medium text-sm sm:text-base">
                               {(job.min_sal ?? 0) > 0 &&
                               (job.max_sal ?? 0) > 0 ? (
                                 <>
@@ -129,12 +156,15 @@ const AdminJobListPage: React.FC = () => {
                             </div>
                           )}
                         </div>
-                        <Button
-                          label="Manage Job"
-                          variant="primary"
-                          className="text-sm"
-                          onClick={() => handleChangePage(job.id)}
-                        />
+
+                        <div className="w-full md:w-auto flex md:block">
+                          <Button
+                            label="Manage Job"
+                            variant="primary"
+                            className="text-sm w-full md:w-auto"
+                            onClick={() => handleChangePage(job.id)}
+                          />
+                        </div>
                       </div>
                     </li>
                   ))}
@@ -143,8 +173,8 @@ const AdminJobListPage: React.FC = () => {
             )}
           </section>
 
-          {/* Sidebar */}
-          <section className="md:col-span-2 rounded-xl shadow p-6 relative overflow-hidden">
+          {/* CreateJob */}
+          <section className="md:col-span-2 rounded-xl shadow p-4 sm:p-6 relative overflow-hidden hidden md:block">
             <div className="absolute inset-0">
               <Image
                 src={CreateJobBg}
@@ -156,16 +186,16 @@ const AdminJobListPage: React.FC = () => {
             </div>
 
             <div className="relative z-10 text-white">
-              <h2 className="text-xl font-semibold mb-4">
+              <h2 className="text-lg sm:text-xl font-semibold mb-2">
                 Recruit the best candidates
               </h2>
-              <h3 className="font-medium">
+              <h3 className="font-medium text-sm sm:text-base">
                 Create jobs, invite, and hire with ease
               </h3>
               <Button
                 label="Create a new job"
                 variant="primary"
-                className="mt-6 w-full text-lg"
+                className="mt-4 w-full text-base"
                 onClick={() => setIsModalOpen(true)}
               />
             </div>

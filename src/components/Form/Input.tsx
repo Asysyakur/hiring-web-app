@@ -69,7 +69,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             aria-describedby={error ? `${inputId}-error` : undefined}
             value={value}
             className={cn(
-              "border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 flex-1",
+              "border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 flex-1 text-sm",
               leftAddon && "pl-0",
               rightAddon && "pr-0",
               className

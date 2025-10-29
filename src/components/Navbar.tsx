@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/store";
 import { logoutUser } from "@/features/auth/authThunks";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 import DefaultProfile from "@/assets/Default Avatar.png";
 import { useEffect, useState } from "react";
 import {
@@ -60,13 +60,13 @@ export default function Navbar({ pageName, pageBefore, pathBack }: Props) {
   }, []);
   console.log("Navbar ProfileImage:", ProfileImage);
   return (
-    <nav className="w-full bg-primaryBg text-primaryText px-6 py-3 flex justify-between items-center border-b">
-      <div className="flex items-center gap-4">
+    <nav className="w-full bg-primaryBg text-primaryText p-2 md:px-6 md:py-3 flex justify-between items-center border-b">
+      <div className="flex items-center gap-2 md:gap-4">
         {pageBefore && pathBack && (
           <>
             <button
               onClick={() => router.push(pathBack)}
-              className="text-base md:text-lg font-semibold border-2 px-4 py-1 rounded-lg"
+              className="text-base md:text-lg font-semibold border-2 px-2 md:px-4 py-1 rounded-lg"
               aria-label="Back"
             >
               {pageBefore}
@@ -76,7 +76,7 @@ export default function Navbar({ pageName, pageBefore, pathBack }: Props) {
         )}
 
         <h1
-          className={`text-base md:text-lg font-semibold px-4 py-1 rounded-lg ${
+          className={`text-base md:text-lg font-semibold px-2 md:px-4 py-1 rounded-lg ${
             pageBefore ? "border-2 border-gray-300 bg-gray-200" : ""
           }`}
         >
