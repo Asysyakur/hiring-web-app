@@ -20,15 +20,16 @@ const AdminJobListPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const { jobs, loading } = useSelector((state: RootState) => state.adminJobs);
-  const { company, user } = useAuth();
+  const { company, user, loading: authLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    const fetchData = async () => {
-      await dispatch(fetchJobsAdmin(user?.id || ""));
-    };
-    fetchData();
-  }, [dispatch, user?.id]);
+    if (authLoading) return; // tunggu sampai auth selesai
+    if (!user?.id) return;
+
+    dispatch(fetchJobsAdmin(user.id));
+    console.log("Fetching admin jobs for user ID:", user.id);
+  }, [authLoading, user?.id, dispatch]);
 
   const handleChangePage = (jobId: string) => {
     router.push(`/admin/joblist/managejob/${jobId}`);

@@ -29,7 +29,7 @@ const ApplyJob: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const id = params?.id as string;
 
-  const { user, candidate, company } = useAuth();
+  const { user, candidate, company, loading: authLoading } = useAuth();
   const { job, applicationData, loading, error } = useSelector(
     (state: RootState) => state.jobApplications
   );
@@ -65,7 +65,7 @@ const ApplyJob: React.FC = () => {
 
   // 🟩 Set data awal ke Redux dari user dan candidate
   useEffect(() => {
-    if (!user || !candidate) return;
+    if (!user || !candidate || authLoading) return;
 
     dispatch(
       setApplicationData({
