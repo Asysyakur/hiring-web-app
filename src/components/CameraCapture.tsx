@@ -381,11 +381,10 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
             </div>
 
             <div
-              className="relative w-full bg-black flex items-center justify-center mx-auto overflow-hidden rounded-lg"
+              className="relative w-full bg-black flex items-center justify-center mx-auto overflow-hidden rounded-lg aspect-[4/3] sm:aspect-video"
               style={{
-                aspectRatio: "16 / 9",
-                height: "auto",
-                maxHeight: "calc(100vh - 220px)",
+              height: "auto",
+              maxHeight: "calc(100vh - 220px)",
               }}
             >
               {isCaptured ? (
