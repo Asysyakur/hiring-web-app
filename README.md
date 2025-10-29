@@ -16,23 +16,24 @@ This project is a web-based hiring platform where admins can create and manage j
 
 ## How to Run Locally
 1. Clone the repository:  
-
+```
 git clone https://github.com/Asysyakur/hiring-web-app.git
-
-Navigate to the project folder:
-  
+```
+2. Navigate to the project folder:
+```
 cd hiring-web-app
-
-Install dependencies:
-
-Create a .env.local file and add your Supabase credentials:
-
+```
+3. Install dependencies:
+```
+npm install
+```
+4. Create a .env.local file and add your Supabase credentials:
+```
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
-
-Run the development server:
-
+```
+5. Run the development server:
+```
 npm run dev
-
+```
 Open http://localhost:3000 in your browser.
