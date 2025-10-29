@@ -36,7 +36,7 @@ export const registerUser = createAsyncThunk(
       password,
       options: {
         data: { full_name: fullName },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `/`,
       },
     });
 
@@ -55,7 +55,7 @@ export const signInWithMagicLink = createAsyncThunk(
 
       const { error } = await supabase.auth.signInWithOtp({ email, options: {
         data: { full_name: fullName },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `/`,
       }});
       if (error) throw error;
       return true;
@@ -73,7 +73,7 @@ export const loginWithGoogle = createAsyncThunk(
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `/`,
       },
     });
 
