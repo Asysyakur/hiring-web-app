@@ -21,6 +21,7 @@ import Loading from "@/components/Loading";
 import DefaultAvatar from "@/assets/Default Avatar.png";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 
 const ApplyJob: React.FC = () => {
   const params = useParams();
@@ -99,8 +100,7 @@ const ApplyJob: React.FC = () => {
         if (value === "mandatory") {
           switch (key) {
             case "fullname":
-              if (!payload.fullName)
-                newErrors.fullName = "Full name is required";
+              if (!payload.fullName) newErrors.fullName = "Full name is required";
               break;
             case "dob":
               if (!payload.dob) newErrors.dob = "Date of birth is required";
@@ -110,8 +110,7 @@ const ApplyJob: React.FC = () => {
               if (!payload.pronoun) newErrors.pronoun = "Pronoun is required";
               break;
             case "domicile":
-              if (!payload.domicile)
-                newErrors.domicile = "Domicile is required";
+              if (!payload.domicile) newErrors.domicile = "Domicile is required";
               break;
             case "phone":
               if (!payload.phone) newErrors.phone = "Phone number is required";
@@ -120,12 +119,10 @@ const ApplyJob: React.FC = () => {
               if (!payload.email) newErrors.email = "Email is required";
               break;
             case "linkedin":
-              if (!payload.linkedin)
-                newErrors.linkedin = "LinkedIn profile is required";
+              if (!payload.linkedin) newErrors.linkedin = "LinkedIn profile is required";
               break;
             case "photo":
-              if (!payload.profile_photo)
-                newErrors.profile_photo = "Profile photo is required";
+              if (!payload.profile_photo) newErrors.profile_photo = "Profile photo is required";
               break;
           }
         }
@@ -135,16 +132,18 @@ const ApplyJob: React.FC = () => {
 
     if (Object.keys(newErrors).length > 0) {
       console.log("Validation Errors:", newErrors);
-      alert("⚠️ Please fill all required fields!");
+      // using sonner toast
+      toast.error("⚠️ Please fill all required fields!");
       return;
     }
 
     const result = await dispatch(submitApplication(payload));
     if (submitApplication.fulfilled.match(result)) {
-      alert("✅ Application submitted successfully!");
+      toast.success("Application submitted successfully!");
       router.push("/success");
     } else {
-      alert("❌ Failed to submit application!");
+      const errMsg = result.error?.message ?? "Failed to submit application!";
+      toast.error(`❌ ${errMsg}`);
     }
   };
 
