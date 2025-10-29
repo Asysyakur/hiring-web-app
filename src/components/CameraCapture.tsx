@@ -30,6 +30,8 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const isCountdownActiveRef = useRef(false);
+  const [isModelLoading, setIsModelLoading] = useState(false);
+
   const stepRef = useRef<number>(0);
   useEffect(() => {
     stepRef.current = step;
@@ -186,13 +188,13 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
   };
 
   const openCamera = async () => {
+    setIsModelLoading(true);
     setShowCamera(true);
     setStep(0);
     setIsCaptured(false);
     stableCountRef.current = 0;
 
     try {
-      // dynamic imports to avoid SSR/bundle issues
       const [{ Hands }, { Camera }] = await Promise.all([
         import("@mediapipe/hands"),
         import("@mediapipe/camera_utils"),
@@ -215,8 +217,7 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
 
       if (!videoRef.current) throw new Error("Video element not mounted");
 
-      // create camera helper that feeds video frames into Hands
-      // @ts-ignore Camera type from mediapipe
+      // @ts-ignore
       const camera = new Camera(videoRef.current, {
         onFrame: async () => {
           if (!videoRef.current) return;
@@ -233,6 +234,8 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
       setShowCamera(false);
       setStatusText(null);
       stopAll();
+    } finally {
+      setIsModelLoading(false);
     }
   };
 
@@ -330,6 +333,14 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
                 </div>
               ) : (
                 <>
+                  {isModelLoading && (
+                    <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center z-50">
+                      <div className="w-10 h-10 border-4 border-gray-300 border-t-[#01959F] rounded-full animate-spin mb-2"></div>
+                      <p className="text-sm text-gray-700 font-medium">
+                        Loading hand detection model...
+                      </p>
+                    </div>
+                  )}
                   <video
                     ref={videoRef}
                     className="w-full h-full object-cover"
