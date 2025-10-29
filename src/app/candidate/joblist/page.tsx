@@ -7,7 +7,7 @@ import Logo from "@/assets/Logo.svg";
 import EmptyState from "@/assets/Empty State.svg";
 import Image from "next/image";
 import CardSkeleton from "@/components/CardSkeleton";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { MapPin, Banknote, ArrowLeft } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,7 +17,6 @@ import { fetchCandidateJobs } from "@/features/jobSliceCandidate";
 const JobListPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const { jobs: candidateJobs, loading } = useSelector(
     (state: RootState) => state.candidateJobs
@@ -65,8 +64,12 @@ const JobListPage: React.FC = () => {
   }, [candidateJobs, selectedJob, isMobile]);
 
   // open modal when query param present (mobile)
+  // open modal when query param present (mobile)
   useEffect(() => {
-    const jobId = searchParams?.get?.("job");
+    if (typeof window === "undefined") return;
+    const readJobId = () => new URLSearchParams(window.location.search).get("job");
+
+    const jobId = readJobId();
     if (jobId && candidateJobs.length > 0) {
       const job = candidateJobs.find((j: any) => String(j.id) === String(jobId));
       if (job) {
@@ -77,18 +80,35 @@ const JobListPage: React.FC = () => {
     if (!jobId && isMobile) {
       setSelectedJob(null);
     }
-  }, [searchParams, candidateJobs, isMobile]);
 
+    // update when navigating browser history (back/forward)
+    const onPopState = () => {
+      const jobId2 = readJobId();
+      if (jobId2 && candidateJobs.length > 0) {
+        const job = candidateJobs.find((j: any) => String(j.id) === String(jobId2));
+        if (job) {
+          setSelectedJob(job);
+        }
+      } else if (!jobId2 && isMobile) {
+        setSelectedJob(null);
+      }
+    };
+
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [candidateJobs, isMobile]);
   const handleChangePage = (jobId: string) => {
     router.push(`/candidate/joblist/applyjob/${jobId}`);
   };
 
   const handleJobClick = (job: any) => {
     if (isMobile) {
-      // push query param so browser back closes modal
-      const path = `${window.location.pathname}?job=${job.id}`;
-      router.push(path);
-      // selectedJob will be set by effect that reads searchParams
+      // push query param so browser back closes modal; selectedJob will be set by effect that reads searchParams
+      if (typeof window !== "undefined") {
+        const url = new URL(window.location.href);
+        url.searchParams.set("job", String(job.id));
+        router.push(url.pathname + url.search);
+      }
     } else {
       setSelectedJob(job);
     }
@@ -103,8 +123,7 @@ const JobListPage: React.FC = () => {
       router.push(window.location.pathname);
     }
   };
-
-  const jobIdInParams = !!searchParams?.get?.("job");
+  const jobIdInParams = typeof window !== "undefined" && !!new URLSearchParams(window.location.search).get("job");
   const showMobileModal = isMobile && jobIdInParams && !!selectedJob;
 
   return (
