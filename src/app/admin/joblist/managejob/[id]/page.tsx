@@ -6,12 +6,21 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchJobDetail } from "@/features/jobDetailSlice";
 import type { RootState, AppDispatch } from "@/store";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, ChevronDown } from "lucide-react";
 import Image from "next/image";
 import EmptyStateFile from "@/assets/Empty State File.svg";
 import Navbar from "@/components/Navbar";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Loading from "@/components/Loading";
+import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 const ManageJobPage = () => {
   const params = useParams();
@@ -21,11 +30,16 @@ const ManageJobPage = () => {
   const { job, candidates, loading, error } = useSelector(
     (state: RootState) => state.jobDetails
   );
+  const [jobStatus, setJobStatus] = useState(job?.status || "Active");
+  const statusOptions = ["Active", "Inactive", "Draft"];
 
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
   const [search, setSearch] = useState("");
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: "asc" | "desc" | null }>({
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: "asc" | "desc" | null;
+  }>({
     key: "",
     direction: null,
   });
@@ -43,6 +57,25 @@ const ManageJobPage = () => {
   useEffect(() => {
     if (id) dispatch(fetchJobDetail(id));
   }, [id, dispatch]);
+
+  useEffect(() => {
+    if (job?.status) setJobStatus(job.status);
+  }, [job?.status]);
+
+  const handleChangeStatus = async (status: string) => {
+    setJobStatus(status);
+    try {
+      const { error } = await supabase
+        .from("jobs")
+        .update({ status })
+        .eq("id", id);
+      if (error) throw error;
+      toast.success(`Job status updated to ${status}`);
+    } catch (err) {
+      console.error("Error updating job status:", err);
+      toast.error("Failed to update job status");
+    }
+  };
 
   const sortedCandidates = useMemo(() => {
     let sortable = [...candidates];
@@ -63,7 +96,10 @@ const ManageJobPage = () => {
       c.fullName?.toLowerCase().includes(search.toLowerCase()) ||
       c.email?.toLowerCase().includes(search.toLowerCase())
   );
-  const paginated = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+  const paginated = filtered.slice(
+    (page - 1) * rowsPerPage,
+    page * rowsPerPage
+  );
 
   const handleSort = (key: string) => {
     setSortConfig((prev) => ({
@@ -81,7 +117,8 @@ const ManageJobPage = () => {
   };
 
   if (loading) return <Loading />;
-  if (error) return <div className="text-center text-red-600 mt-20">{error}</div>;
+  if (error)
+    return <div className="text-center text-red-600 mt-20">{error}</div>;
 
   return (
     <ProtectedRoute>
@@ -94,7 +131,34 @@ const ManageJobPage = () => {
 
         <main className="p-8">
           {/* Job Title */}
-          <h2 className="text-2xl font-semibold mb-6">{job?.name ?? "Untitled Job"}</h2>
+          <div className="flex items-center gap-4 mb-6">
+            <h2 className="text-2xl font-semibold">
+              {job?.name ?? "Untitled Job"}
+            </h2>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-1"
+                >
+                  {jobStatus}
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-36">
+                {statusOptions.map((status) => (
+                  <DropdownMenuItem
+                    key={status}
+                    onClick={() => handleChangeStatus(status)}
+                  >
+                    {status}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
           {/* Search bar & info */}
           <div className="mb-4 flex justify-between items-center">
@@ -113,8 +177,15 @@ const ManageJobPage = () => {
           {/* Table */}
           {candidates.length === 0 ? (
             <div className="flex flex-col items-center justify-center min-h-[560px] text-center">
-              <Image src={EmptyStateFile} alt="Empty" width={150} height={150} />
-              <h3 className="mt-4 text-lg font-semibold">No candidates found</h3>
+              <Image
+                src={EmptyStateFile}
+                alt="Empty"
+                width={150}
+                height={150}
+              />
+              <h3 className="mt-4 text-lg font-semibold">
+                No candidates found
+              </h3>
               <p className="text-gray-500 text-sm">
                 Share this job so more people can apply.
               </p>
@@ -132,7 +203,11 @@ const ManageJobPage = () => {
                       <thead className="bg-gray-50 text-gray-600 uppercase text-xs font-semibold">
                         <tr>
                           {columns.map((col, index) => (
-                            <Draggable key={col.id} draggableId={col.id} index={index}>
+                            <Draggable
+                              key={col.id}
+                              draggableId={col.id}
+                              index={index}
+                            >
                               {(prov) => (
                                 <th
                                   ref={prov.innerRef}
@@ -145,7 +220,10 @@ const ManageJobPage = () => {
                                     className="flex items-center gap-1 hover:text-gray-900"
                                   >
                                     {col.label}
-                                    <ArrowUpDown size={12} className="opacity-50" />
+                                    <ArrowUpDown
+                                      size={12}
+                                      className="opacity-50"
+                                    />
                                   </button>
                                 </th>
                               )}
@@ -157,9 +235,15 @@ const ManageJobPage = () => {
 
                       <tbody className="divide-y divide-gray-100">
                         {paginated.map((c) => (
-                          <tr key={c.id} className="hover:bg-gray-50 transition">
+                          <tr
+                            key={c.id}
+                            className="hover:bg-gray-50 transition"
+                          >
                             {columns.map((col) => (
-                              <td key={col.id} className="px-6 py-4 text-gray-700 whitespace-nowrap">
+                              <td
+                                key={col.id}
+                                className="px-6 py-4 text-gray-700 whitespace-nowrap"
+                              >
                                 {col.id === "linkedin" ? (
                                   <a
                                     href={c.linkedin}
@@ -171,8 +255,13 @@ const ManageJobPage = () => {
                                   </a>
                                 ) : col.id === "fullName" ? (
                                   <div className="flex items-center gap-3">
-                                    <input type="checkbox" className="w-4 h-4 accent-blue-500" />
-                                    <span className="font-medium">{c.fullName}</span>
+                                    <input
+                                      type="checkbox"
+                                      className="w-4 h-4 accent-blue-500"
+                                    />
+                                    <span className="font-medium">
+                                      {c.fullName}
+                                    </span>
                                   </div>
                                 ) : (
                                   c[col.id] ?? "—"

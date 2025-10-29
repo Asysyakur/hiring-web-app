@@ -34,7 +34,9 @@ const initialState: JobState = {
 export const fetchCandidateJobs = createAsyncThunk("jobs/fetchCandidateJobs", async () => {
   const { data, error } = await supabase
     .from("jobs")
-    .select("*, company: company_attributes(id, name, location, logo)");
+    .select("*, company: company_attributes(id, name, location, logo)")
+    .order("created_at", { ascending: false })
+    .eq("status", "Active");
   if (error) throw error;
   return data || [];
 });
