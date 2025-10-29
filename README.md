@@ -37,3 +37,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 npm run dev
 ```
 Open http://localhost:3000 in your browser.
+
+---
+
+### Minor Navigation Bug
+There is a known issue when switching to another browser tab: navigating to the next page may take a long time to load.  
+
+**Workarounds:**  
+- Refresh the page.  
+- If that doesn’t work, open the browser’s Developer Tools (F12) → Network tab, then try refreshing again. This workaround has worked on my side, though the root cause is still under investigation.  
+
+I am still working on a permanent fix for this issue.

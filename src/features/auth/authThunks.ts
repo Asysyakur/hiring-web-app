@@ -13,9 +13,15 @@ export const loginUser = createAsyncThunk(
 
     try {
       const exists = await checkProfileExists(email);
-      if (!exists) return rejectWithValue("Email ini belum terdaftar sebagai akun di Rakamin Academy");
+      if (!exists)
+        return rejectWithValue(
+          "Email ini belum terdaftar sebagai akun di Rakamin Academy"
+        );
 
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       if (error) throw error;
       return data.user;
     } catch (err: any) {
@@ -48,14 +54,18 @@ export const registerUser = createAsyncThunk(
 // Register via magic link
 export const registerWithMagicLink = createAsyncThunk(
   "auth/registerWithMagicLink",
-  async ({ fullName,email }: Credentials, { rejectWithValue }) => {
+  async ({ fullName, email }: Credentials, { rejectWithValue }) => {
     try {
       const exists = await checkProfileExists(email);
-      if (exists) return rejectWithValue("Email ini sudah terdaftar. Silakan login.");
-      const { error } = await supabase.auth.signInWithOtp({ email, options: {
-        data: { full_name: fullName },
-        emailRedirectTo: `/`,
-      }});
+      if (exists)
+        return rejectWithValue("Email ini sudah terdaftar. Silakan login.");
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          data: { full_name: fullName, email: email },
+          emailRedirectTo: `/`,
+        },
+      });
       if (error) throw error;
       return true;
     } catch (err: any) {
@@ -67,15 +77,21 @@ export const registerWithMagicLink = createAsyncThunk(
 // LOGIN via Magic Link (tanpa password)
 export const signInWithMagicLink = createAsyncThunk(
   "auth/signInWithMagicLink",
-  async ({ fullName,email }: Credentials, { rejectWithValue }) => {
+  async ({ fullName, email }: Credentials, { rejectWithValue }) => {
     try {
       const exists = await checkProfileExists(email);
-      if (!exists) return rejectWithValue("Email ini belum terdaftar sebagai akun di Rakamin Academy");
+      if (!exists)
+        return rejectWithValue(
+          "Email ini belum terdaftar sebagai akun di Rakamin Academy"
+        );
 
-      const { error } = await supabase.auth.signInWithOtp({ email, options: {
-        data: { full_name: fullName },
-        emailRedirectTo: `/`,
-      }});
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          data: { full_name: fullName },
+          emailRedirectTo: `/`,
+        },
+      });
       if (error) throw error;
       return true;
     } catch (err: any) {
@@ -83,7 +99,6 @@ export const signInWithMagicLink = createAsyncThunk(
     }
   }
 );
-
 
 // LOGIN / SIGNUP dengan GOOGLE
 export const loginWithGoogle = createAsyncThunk(
@@ -99,7 +114,6 @@ export const loginWithGoogle = createAsyncThunk(
     if (error) return rejectWithValue(error.message);
     return data; // URL redirect otomatis ditangani
   }
-  
 );
 
 // LOGOUT user
@@ -108,7 +122,6 @@ export const logoutUser = createAsyncThunk("auth/logoutUser", async () => {
   if (error) throw error;
   return null;
 });
-
 
 // Fetch profile lengkap user
 export const fetchProfile = createAsyncThunk(
@@ -124,7 +137,8 @@ export const fetchProfile = createAsyncThunk(
       // Ambil data dari tabel profiles
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select(`
+        .select(
+          `
           id,
           full_name,
           avatar_url,
@@ -139,7 +153,8 @@ export const fetchProfile = createAsyncThunk(
             experience,
             skills
           )
-        `)
+        `
+        )
         .eq("id", user.id)
         .single();
 
@@ -151,4 +166,3 @@ export const fetchProfile = createAsyncThunk(
     }
   }
 );
-
