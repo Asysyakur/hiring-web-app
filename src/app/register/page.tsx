@@ -96,7 +96,6 @@ export default function RegisterPage() {
     }
 
     if (Object.keys(newErrors).length > 0) {
-      console.log("Validation errors found:", newErrors);
       setNewErrors(newErrors);
       setIsSubmitting(false);
       return;

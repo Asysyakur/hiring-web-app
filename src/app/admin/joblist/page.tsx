@@ -30,7 +30,6 @@ const AdminJobListPage: React.FC = () => {
   useEffect(() => {
     if (!user?.id) return;
     dispatch(fetchJobsAdmin(user.id));
-    console.log("Fetching admin jobs for user ID:", user.id);
   }, [user?.id, dispatch]);
 
   const handleChangePage = (jobId: string) => {

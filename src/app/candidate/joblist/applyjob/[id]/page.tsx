@@ -128,11 +128,8 @@ const ApplyJob: React.FC = () => {
         }
       }
     }
-    console.log("Payload for Submission:", payload);
 
     if (Object.keys(newErrors).length > 0) {
-      console.log("Validation Errors:", newErrors);
-      // using sonner toast
       toast.error("⚠️ Please fill all required fields!");
       return;
     }

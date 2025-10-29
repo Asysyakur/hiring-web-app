@@ -11,17 +11,19 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { MapPin, Banknote, ArrowLeft } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
-import { fetchCandidateJobs } from "@/features/jobSliceCandidate";
+import { fetchAppliedJobs, fetchCandidateJobs } from "@/features/jobSliceCandidate";
 
 const JobListContent: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const { jobs: candidateJobs, loading } = useSelector(
-    (state: RootState) => state.candidateJobs
-  );
-console.log("Candidate jobs from state:", candidateJobs, loading);
+  const {
+    jobs: candidateJobs,
+    appliedJobs,
+    loading,
+  } = useSelector((state: RootState) => state.candidateJobs);
+
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
@@ -44,21 +46,22 @@ console.log("Candidate jobs from state:", candidateJobs, loading);
   }, []);
 
   useEffect(() => {
-    if (candidateJobs.length === 0) {
-      dispatch(fetchCandidateJobs());
-    }
-  }, [dispatch, candidateJobs.length]);
+    dispatch(fetchCandidateJobs());
+    dispatch(fetchAppliedJobs());
+  }, [dispatch]);
 
   useEffect(() => {
     if (!selectedJob && candidateJobs.length > 0 && !isMobile) {
       setSelectedJob(candidateJobs[0]);
     }
   }, [candidateJobs, selectedJob, isMobile]);
-
+  console.log("Selected job:", selectedJob);
   useEffect(() => {
     const jobId = searchParams?.get?.("job");
     if (jobId && candidateJobs.length > 0) {
-      const job = candidateJobs.find((j: any) => String(j.id) === String(jobId));
+      const job = candidateJobs.find(
+        (j: any) => String(j.id) === String(jobId)
+      );
       if (job) setSelectedJob(job);
     }
     if (!jobId && isMobile) setSelectedJob(null);
@@ -124,8 +127,7 @@ console.log("Candidate jobs from state:", candidateJobs, loading);
               <div className="md:col-span-3">
                 <ul className="space-y-4">
                   {candidateJobs.map((job: any) => {
-                    const isSelected =
-                      selectedJob?.id === job.id && !isMobile;
+                    const isSelected = selectedJob?.id === job.id && !isMobile;
                     return (
                       <li
                         key={job.id}
@@ -212,9 +214,19 @@ console.log("Candidate jobs from state:", candidateJobs, loading);
                           </div>
                         </div>
                         <Button
-                          label="Apply"
+                          label={
+                            appliedJobs.includes(selectedJob.id)
+                              ? "Already Applied"
+                              : "Apply"
+                          }
                           variant="secondary"
                           onClick={() => handleChangePage(selectedJob.id)}
+                          disabled={appliedJobs.includes(selectedJob.id)}
+                          className={
+                            appliedJobs.includes(selectedJob.id)
+                              ? "opacity-60 cursor-not-allowed"
+                              : ""
+                          }
                         />
                       </div>
 
@@ -252,10 +264,20 @@ console.log("Candidate jobs from state:", candidateJobs, loading);
                         <ArrowLeft className="w-4 h-4" /> Back
                       </button>
                       <Button
-                        label="Apply"
+                        label={
+                          appliedJobs.includes(selectedJob.id)
+                            ? "Already Applied"
+                            : "Apply"
+                        }
                         variant="secondary"
                         onClick={() =>
                           selectedJob && handleChangePage(selectedJob.id)
+                        }
+                        disabled={appliedJobs.includes(selectedJob.id)}
+                        className={
+                          appliedJobs.includes(selectedJob.id)
+                            ? "opacity-60 cursor-not-allowed"
+                            : ""
                         }
                       />
                     </div>

@@ -86,7 +86,7 @@ export default function LoginPage() {
     if (isSubmitting || loading) return;
     dispatch(loginWithGoogle());
   };
-console.log(error);
+  
   const busy = loading || isSubmitting;
 
   return (

@@ -42,10 +42,7 @@ export default function Navbar({ pageName, pageBefore, pathBack }: Props) {
       try {
         const raw = localStorage.getItem("auth_profile");
         const storedImage = raw ? JSON.parse(raw) : null;
-        console.log(
-          "Fetched profile image from localStorage:",
-          storedImage?.avatar_url
-        );
+        
         if (storedImage?.avatar_url) {
           setProfileImage(storedImage.avatar_url);
         } else {
@@ -58,7 +55,7 @@ export default function Navbar({ pageName, pageBefore, pathBack }: Props) {
 
     fetchProfileImage();
   }, []);
-  console.log("Navbar ProfileImage:", ProfileImage);
+
   return (
     <nav className="w-full bg-primaryBg text-primaryText p-2 md:px-6 md:py-3 flex justify-between items-center border-b">
       <div className="flex items-center gap-2 md:gap-4">
