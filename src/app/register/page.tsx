@@ -7,6 +7,7 @@ import {
   registerUser,
   loginWithGoogle,
   signInWithMagicLink,
+  registerWithMagicLink,
 } from "@/features/auth/authThunks";
 import Input from "@/components/Form/Input";
 import { Button } from "@/components/Form/Button";
@@ -104,7 +105,7 @@ export default function RegisterPage() {
     try {
       if (mode === "magiclink") {
         // unwrap() will throw if the thunk was rejected
-        await dispatch(signInWithMagicLink({ fullName, email })).unwrap();
+        await dispatch(registerWithMagicLink({ fullName, email })).unwrap();
       } else {
         await dispatch(registerUser({ fullName, email, password })).unwrap();
       }

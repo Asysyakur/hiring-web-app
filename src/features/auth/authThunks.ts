@@ -45,7 +45,26 @@ export const registerUser = createAsyncThunk(
   }
 );
 
-// REGISTER atau LOGIN via Magic Link (tanpa password)
+// Register via magic link
+export const registerWithMagicLink = createAsyncThunk(
+  "auth/registerWithMagicLink",
+  async ({ fullName,email }: Credentials, { rejectWithValue }) => {
+    try {
+      const exists = await checkProfileExists(email);
+      if (exists) return rejectWithValue("Email ini sudah terdaftar. Silakan login.");
+      const { error } = await supabase.auth.signInWithOtp({ email, options: {
+        data: { full_name: fullName },
+        emailRedirectTo: `/`,
+      }});
+      if (error) throw error;
+      return true;
+    } catch (err: any) {
+      return rejectWithValue(err.message || "Gagal mengirim link registrasi");
+    }
+  }
+);
+
+// LOGIN via Magic Link (tanpa password)
 export const signInWithMagicLink = createAsyncThunk(
   "auth/signInWithMagicLink",
   async ({ fullName,email }: Credentials, { rejectWithValue }) => {
