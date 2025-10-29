@@ -1,4 +1,7 @@
 import React, { forwardRef } from "react";
+import { Label } from "@/components/ui/label";
+import { Textarea as ShadcnTextarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 type TextAreaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
   label?: string;
@@ -21,6 +24,8 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       className = "",
       labelClassName = "block text-sm font-medium mb-1",
       wrapperClassName = "flex flex-col gap-2",
+      leftAddon,
+      rightAddon,
       ...props
     },
     ref
@@ -30,27 +35,41 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     return (
       <div className={wrapperClassName}>
         {label && (
-          <label htmlFor={inputId} className={labelClassName}>
+          <Label htmlFor={inputId} className={labelClassName}>
             {label} {required && <span className="text-destructive">*</span>}
-          </label>
+          </Label>
         )}
 
         <div
-          className={`relative w-full cursor-default border-2 rounded-md ${
-            error ? "border-destructive" : "border-gray-200"
-          }`}
+          className={cn(
+            "relative w-full rounded-md border border-input bg-background text-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-0 transition-all",
+            error ? "border-destructive focus-within:ring-destructive" : "", className
+          )}
         >
           <div className="flex items-start">
-            <textarea
+            {leftAddon && (
+              <div className="mr-2 flex items-start">{leftAddon}</div>
+            )}
+
+            <ShadcnTextarea
               id={inputId}
               name={name}
               ref={ref}
               rows={rows}
-              className={`w-full border-none text-sm text-gray-800 rounded-md focus:outline-2 focus:outline-primary resize-y p-2 focus:outline-none ${className}`}
+              className={cn(
+                "border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 flex-1 text-sm",
+                leftAddon && "pl-0",
+                rightAddon && "pr-0",
+                className
+              )}
               aria-invalid={!!error}
               aria-describedby={error ? `${inputId}-error` : undefined}
               {...props}
             />
+
+            {rightAddon && (
+              <div className="ml-2 flex items-start">{rightAddon}</div>
+            )}
           </div>
         </div>
 

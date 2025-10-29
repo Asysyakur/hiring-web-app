@@ -22,18 +22,14 @@ const ManageJobPage = () => {
     (state: RootState) => state.jobDetails
   );
 
-  // Pagination & Filtering
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
   const [search, setSearch] = useState("");
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: "asc" | "desc" | null }>({
+    key: "",
+    direction: null,
+  });
 
-  // Sorting
-  const [sortConfig, setSortConfig] = useState<{
-    key: string;
-    direction: "asc" | "desc" | null;
-  }>({ key: "", direction: null });
-
-  // Columns
   const [columns, setColumns] = useState([
     { id: "fullName", label: "NAMA LENGKAP" },
     { id: "email", label: "EMAIL ADDRESS" },
@@ -44,14 +40,10 @@ const ManageJobPage = () => {
     { id: "linkedin", label: "LINK LINKEDIN" },
   ]);
 
-  // Fetch data once
   useEffect(() => {
-    if (id) {
-      dispatch(fetchJobDetail(id));
-    }
+    if (id) dispatch(fetchJobDetail(id));
   }, [id, dispatch]);
 
-  // Sorting logic
   const sortedCandidates = useMemo(() => {
     let sortable = [...candidates];
     if (sortConfig.key && sortConfig.direction) {
@@ -71,10 +63,7 @@ const ManageJobPage = () => {
       c.fullName?.toLowerCase().includes(search.toLowerCase()) ||
       c.email?.toLowerCase().includes(search.toLowerCase())
   );
-  const paginated = filtered.slice(
-    (page - 1) * rowsPerPage,
-    page * rowsPerPage
-  );
+  const paginated = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
 
   const handleSort = (key: string) => {
     setSortConfig((prev) => ({
@@ -92,54 +81,46 @@ const ManageJobPage = () => {
   };
 
   if (loading) return <Loading />;
-  if (error)
-    return <div className="text-center text-red-600 mt-20">{error}</div>;
+  if (error) return <div className="text-center text-red-600 mt-20">{error}</div>;
 
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
         <Navbar
-          pageName="Manage Job"
-          pageBefore="Job List"
+          pageName="Manage Candidate"
+          pageBefore="Job list"
           pathBack={`/admin/joblist`}
         />
 
         <main className="p-8">
-          <h2 className="text-2xl font-semibold mb-6">
-            {job?.name ?? "Untitled Job"}
-          </h2>
+          {/* Job Title */}
+          <h2 className="text-2xl font-semibold mb-6">{job?.name ?? "Untitled Job"}</h2>
 
-          {/* Search */}
+          {/* Search bar & info */}
           <div className="mb-4 flex justify-between items-center">
             <input
               type="text"
               placeholder="Search candidates..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="px-3 py-2 border rounded-lg w-64"
+              className="px-4 py-2 border rounded-lg w-72 focus:ring-2 focus:ring-gray-300 outline-none text-sm"
             />
             <p className="text-gray-600 text-sm">
               Showing {paginated.length} of {filtered.length} candidates
             </p>
           </div>
 
+          {/* Table */}
           {candidates.length === 0 ? (
-            <div className="flex flex-col items-center justify-center min-h-[300px] text-center">
-              <Image
-                src={EmptyStateFile}
-                alt="Empty"
-                width={150}
-                height={150}
-              />
-              <h3 className="mt-4 text-lg font-semibold">
-                No candidates found
-              </h3>
+            <div className="flex flex-col items-center justify-center min-h-[560px] text-center">
+              <Image src={EmptyStateFile} alt="Empty" width={150} height={150} />
+              <h3 className="mt-4 text-lg font-semibold">No candidates found</h3>
               <p className="text-gray-500 text-sm">
                 Share this job so more people can apply.
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="overflow-x-auto bg-white rounded-xl border border-gray-200 shadow-sm">
               <DragDropContext onDragEnd={handleDragEnd}>
                 <Droppable droppableId="columns" direction="horizontal">
                   {(provided) => (
@@ -148,30 +129,23 @@ const ManageJobPage = () => {
                       ref={provided.innerRef}
                       className="min-w-full text-sm"
                     >
-                      <thead className="bg-gray-100 text-gray-600 uppercase text-xs font-semibold">
+                      <thead className="bg-gray-50 text-gray-600 uppercase text-xs font-semibold">
                         <tr>
                           {columns.map((col, index) => (
-                            <Draggable
-                              key={col.id}
-                              draggableId={col.id}
-                              index={index}
-                            >
+                            <Draggable key={col.id} draggableId={col.id} index={index}>
                               {(prov) => (
                                 <th
                                   ref={prov.innerRef}
                                   {...prov.draggableProps}
                                   {...prov.dragHandleProps}
-                                  className="px-6 py-3 text-left whitespace-nowrap select-none"
+                                  className="px-6 py-3 text-left whitespace-nowrap select-none font-semibold text-gray-700"
                                 >
                                   <button
                                     onClick={() => handleSort(col.id)}
-                                    className="flex items-center gap-1 font-semibold text-gray-700"
+                                    className="flex items-center gap-1 hover:text-gray-900"
                                   >
                                     {col.label}
-                                    <ArrowUpDown
-                                      size={12}
-                                      className="opacity-50"
-                                    />
+                                    <ArrowUpDown size={12} className="opacity-50" />
                                   </button>
                                 </th>
                               )}
@@ -183,15 +157,9 @@ const ManageJobPage = () => {
 
                       <tbody className="divide-y divide-gray-100">
                         {paginated.map((c) => (
-                          <tr
-                            key={c.id}
-                            className="hover:bg-gray-50 transition-colors duration-200"
-                          >
+                          <tr key={c.id} className="hover:bg-gray-50 transition">
                             {columns.map((col) => (
-                              <td
-                                key={col.id}
-                                className="px-6 py-4 text-gray-700 whitespace-nowrap"
-                              >
+                              <td key={col.id} className="px-6 py-4 text-gray-700 whitespace-nowrap">
                                 {col.id === "linkedin" ? (
                                   <a
                                     href={c.linkedin}
@@ -199,17 +167,12 @@ const ManageJobPage = () => {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                   >
-                                    {c.linkedin?.slice(0, 30) + "..."}
+                                    {c.linkedin?.slice(0, 40) + "..."}
                                   </a>
                                 ) : col.id === "fullName" ? (
                                   <div className="flex items-center gap-3">
-                                    <input
-                                      type="checkbox"
-                                      className="w-4 h-4 accent-blue-500"
-                                    />
-                                    <span className="font-medium">
-                                      {c.fullName}
-                                    </span>
+                                    <input type="checkbox" className="w-4 h-4 accent-blue-500" />
+                                    <span className="font-medium">{c.fullName}</span>
                                   </div>
                                 ) : (
                                   c[col.id] ?? "—"
