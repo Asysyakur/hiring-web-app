@@ -60,6 +60,7 @@ const ApplyJob: React.FC = () => {
 
   // 🟩 Ambil detail job
   useEffect(() => {
+    if (authLoading) return; // tunggu sampai auth selesai
     if (id) dispatch(fetchJobById(id));
   }, [id, dispatch]);
 
