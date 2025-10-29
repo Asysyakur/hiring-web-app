@@ -1,9 +1,9 @@
-// src/app/layout.tsx
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "@/styles/globals.css";
 import { ClientProviders } from "@/components/ClientProviders";
 import { Toaster } from "sonner";
+import Script from "next/script"; // ⬅️ tambahkan ini
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,6 +25,16 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Prefetch file WASM biar di-cache sebelum dipakai */}
+        <link
+          rel="prefetch"
+          href="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands_solution_simd_wasm_bin.wasm"
+          as="fetch"
+          type="application/wasm"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 text-gray-800`}
       >
@@ -41,6 +51,17 @@ export default function RootLayout({
           }}
         />
         <ClientProviders>{children}</ClientProviders>
+
+        {/* Prefetch via JS juga (optional, buat jaga-jaga) */}
+        <Script
+          id="prefetch-mediapipe-wasm"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              fetch("https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands_solution_simd_wasm_bin.wasm", { mode: "no-cors" });
+            `,
+          }}
+        />
       </body>
     </html>
   );

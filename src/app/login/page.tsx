@@ -73,7 +73,7 @@ export default function LoginPage() {
         await dispatch(
           loginUser({ email: emailRaw, password: passwordRaw })
         ).unwrap();
-        router.push("/dashboard"); // ubah sesuai halaman setelah login
+        router.push("/"); // ubah sesuai halaman setelah login
       }
     } catch (err) {
       console.error("Login failed:", err);

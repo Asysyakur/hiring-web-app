@@ -29,7 +29,7 @@ const ApplyJob: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const id = params?.id as string;
 
-  const { user, candidate, company, loading: authLoading } = useAuth();
+  const { user, candidate, company } = useAuth();
   const { job, applicationData, loading, error } = useSelector(
     (state: RootState) => state.jobApplications
   );
@@ -60,13 +60,12 @@ const ApplyJob: React.FC = () => {
 
   // 🟩 Ambil detail job
   useEffect(() => {
-    if (authLoading) return; // tunggu sampai auth selesai
     if (id) dispatch(fetchJobById(id));
   }, [id, dispatch]);
 
   // 🟩 Set data awal ke Redux dari user dan candidate
   useEffect(() => {
-    if (!user || !candidate || authLoading) return;
+    if (!user || !candidate) return;
 
     dispatch(
       setApplicationData({

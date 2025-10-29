@@ -24,12 +24,14 @@ const AdminJobListPage: React.FC = () => {
   const router = useRouter();
 
   useEffect(() => {
-    if (authLoading) return; // tunggu sampai auth selesai
-    if (!user?.id) return;
+    if (authLoading) return;
+  }, [authLoading]);
 
+  useEffect(() => {
+    if (!user?.id) return;
     dispatch(fetchJobsAdmin(user.id));
     console.log("Fetching admin jobs for user ID:", user.id);
-  }, [authLoading, user?.id, dispatch]);
+  }, [user?.id, dispatch]);
 
   const handleChangePage = (jobId: string) => {
     router.push(`/admin/joblist/managejob/${jobId}`);

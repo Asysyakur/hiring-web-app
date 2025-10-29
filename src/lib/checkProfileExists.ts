@@ -5,7 +5,7 @@ export async function checkProfileExists(email: string) {
     .from("profiles")
     .select("id")
     .eq("email", email)
-    .maybeSingle(); // gunakan maybeSingle agar tidak error kalau kosong
+    .single();
 
   if (error && error.code !== "PGRST116") throw error;
   return !!data; // true jika ada, false jika tidak

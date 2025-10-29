@@ -260,10 +260,28 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
       } catch {}
 
       // @ts-ignore - Camera accepts facingMode: "user" on most builds; prefer front camera on mobile
-      const camera = new Camera(videoRef.current, {
+      // wait for hands model to finish initializing / downloading before starting camera
+      try {
+        if (typeof (hands as any).initialize === "function") {
+          await (hands as any).initialize();
+        } else if ((hands as any)._wasmModulePromise instanceof Promise) {
+          await (hands as any)._wasmModulePromise;
+        } else {
+          // fallback small delay to let downloads start (safe no-op if already ready)
+          await new Promise((r) => setTimeout(r, 200));
+        }
+      } catch (e) {
+        console.warn("Hands initialization wait failed:", e);
+      }
+
+      const camera = new Camera(videoRef.current!, {
         onFrame: async () => {
           if (!videoRef.current) return;
-          await hands.send({ image: videoRef.current });
+          try {
+            await hands.send({ image: videoRef.current });
+          } catch (err) {
+            // ignore transient send errors while model finalizes
+          }
         },
         width: desiredWidth,
         height: desiredHeight,

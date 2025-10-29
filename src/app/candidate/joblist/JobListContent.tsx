@@ -21,7 +21,7 @@ const JobListContent: React.FC = () => {
   const { jobs: candidateJobs, loading } = useSelector(
     (state: RootState) => state.candidateJobs
   );
-
+console.log("Candidate jobs from state:", candidateJobs, loading);
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [isMobile, setIsMobile] = useState<boolean>(false);
 

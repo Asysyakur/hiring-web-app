@@ -3,11 +3,12 @@
 import { Suspense } from "react";
 import JobListContent from "./JobListContent";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import Loading from "@/components/Loading";
 
 export default function JobListPage() {
   return (
     <ProtectedRoute>
-      <Suspense fallback={<div className="text-center mt-10">Loading jobs...</div>}>
+      <Suspense fallback={<Loading />}>
         <JobListContent />
       </Suspense>
     </ProtectedRoute>
