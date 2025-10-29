@@ -383,6 +383,7 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture }) => {
             <div
               className="relative w-full bg-black flex items-center justify-center mx-auto overflow-hidden rounded-lg"
               style={{
+                aspectRatio: "16 / 9",
                 height: "auto",
                 maxHeight: "calc(100vh - 220px)",
               }}
